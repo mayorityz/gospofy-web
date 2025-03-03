@@ -28,21 +28,21 @@ const navigationItems: NavigationItem[] = [
   {
     title: "Media",
     icon: <Music2 size={20} color="white" />,
-    path: "/admin/media",
+    path: "/admin/",
     subItems: [
       {
         title: "Songs",
-        path: "/admin/media/songs",
+        path: "/admin/songs",
         icon: <Music2 size={18} color="white" />,
       },
       {
         title: "Podcasts",
-        path: "/admin/media/podcasts",
+        path: "/admin/podcasts",
         icon: <Podcast size={18} color="white" />,
       },
       {
         title: "Sermons",
-        path: "/admin/media/sermons",
+        path: "/admin/sermons",
         icon: <Church size={18} color="white" />,
       },
     ],

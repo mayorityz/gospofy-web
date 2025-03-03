@@ -1,6 +1,6 @@
 import { useState } from "react";
 import {
-  Music2,
+  Mic,
   Search,
   MoreHorizontal,
   Upload,
@@ -8,7 +8,6 @@ import {
   RefreshCw,
   Clock,
   Calendar,
-  User,
   PlayCircle,
   Download,
 } from "lucide-react";
@@ -40,118 +39,106 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Label } from "@/components/ui/label";
 
-// Mock data - replace with actual API call
-const mockSongs = [
+// Mock data
+const mockSermons = [
   {
     id: 1,
-    title: "Amazing Grace",
-    artist: "John Newton",
-    uploadedBy: "Pastor James",
-    duration: "4:35",
-    uploadDate: "2024-03-15",
-    genre: "Gospel",
-    plays: 1234,
+    title: "Walking in Faith",
+    preacher: "Pastor John Smith",
+    series: "Faith Foundations",
+    duration: "45:20",
+    date: "2024-03-15",
+    category: "Teaching",
+    plays: 534,
     status: "Active",
-    fileSize: "8.2 MB",
+    fileSize: "42.5 MB",
     format: "MP3",
     metadata: {
-      bpm: 75,
-      key: "G Major",
-      tags: ["worship", "hymn", "classic"],
-      lyrics: "Amazing grace, how sweet the sound...",
-      description: "A timeless Christian hymn about God's grace.",
+      bibleReferences: ["Hebrews 11:1-6", "James 2:14-26"],
+      tags: ["faith", "discipleship", "christian living"],
+      description: "A powerful message about living by faith in today's world.",
+      notes: "Key points about faith and practical application in daily life.",
     },
   },
   {
     id: 2,
-    title: "How Great is Our God",
-    artist: "Chris Tomlin",
-    uploadedBy: "Worship Team",
-    duration: "5:10",
-    uploadDate: "2024-03-14",
-    genre: "Contemporary Worship",
-    plays: 892,
+    title: "The Power of Prayer",
+    preacher: "Pastor Sarah Johnson",
+    series: "Prayer Warriors",
+    duration: "38:15",
+    date: "2024-03-14",
+    category: "Prayer",
+    plays: 428,
     status: "Active",
-    fileSize: "10.5 MB",
-    format: "WAV",
+    fileSize: "35.2 MB",
+    format: "MP3",
     metadata: {
-      bpm: 68,
-      key: "C Major",
-      tags: ["worship", "contemporary", "popular"],
-      lyrics: "How great is our God, sing with me...",
-      description: "Modern worship song celebrating God's greatness.",
+      bibleReferences: ["Matthew 6:5-15", "James 5:13-18"],
+      tags: ["prayer", "spiritual growth", "worship"],
+      description:
+        "Understanding the importance and power of prayer in our daily walk.",
+      notes: "Practical guide to developing a strong prayer life.",
     },
   },
-  // Add more mock songs as needed
 ];
 
-// Song statistics
-const songStats = {
-  totalSongs: 856,
-  totalDuration: "96 hours",
-  totalPlays: "25.4K",
-  uploadedThisMonth: 42,
-  activeUsers: 234,
-  popularGenre: "Gospel",
+// Sermon statistics
+const sermonStats = {
+  totalSermons: 324,
+  totalDuration: "256 hours",
+  totalPlays: "15.2K",
+  uploadedThisMonth: 12,
+  activeListeners: 156,
+  popularCategory: "Teaching",
 };
 
-interface SongDetailsModalProps {
-  song: (typeof mockSongs)[0];
+interface SermonDetailsModalProps {
+  sermon: (typeof mockSermons)[0];
 }
 
-const SongDetailsModal = ({ song }: SongDetailsModalProps) => {
+const SermonDetailsModal = ({ sermon }: SermonDetailsModalProps) => {
   return (
     <div className="space-y-6">
       {/* Basic Info */}
       <div className="grid grid-cols-2 gap-4">
         <div>
           <Label className="text-gold-900">Title</Label>
-          <p className="text-white">{song.title}</p>
+          <p className="text-white">{sermon.title}</p>
         </div>
         <div>
-          <Label className="text-gold-900">Artist</Label>
-          <p className="text-white">{song.artist}</p>
+          <Label className="text-gold-900">Preacher</Label>
+          <p className="text-white">{sermon.preacher}</p>
         </div>
         <div>
-          <Label className="text-gold-900">Genre</Label>
-          <p className="text-white">{song.genre}</p>
+          <Label className="text-gold-900">Series</Label>
+          <p className="text-white">{sermon.series}</p>
         </div>
         <div>
           <Label className="text-gold-900">Duration</Label>
-          <p className="text-white">{song.duration}</p>
+          <p className="text-white">{sermon.duration}</p>
         </div>
       </div>
 
-      {/* Technical Details */}
+      {/* Bible References */}
       <div>
-        <h3 className="text-lg font-semibold text-gold-900 mb-2">
-          Technical Details
-        </h3>
-        <div className="grid grid-cols-2 gap-4 bg-[#1A1A1A] p-4 rounded-lg">
-          <div>
-            <Label className="text-gray-400">Format</Label>
-            <p className="text-white">{song.format}</p>
-          </div>
-          <div>
-            <Label className="text-gray-400">File Size</Label>
-            <p className="text-white">{song.fileSize}</p>
-          </div>
-          <div>
-            <Label className="text-gray-400">BPM</Label>
-            <p className="text-white">{song.metadata.bpm}</p>
-          </div>
-          <div>
-            <Label className="text-gray-400">Key</Label>
-            <p className="text-white">{song.metadata.key}</p>
-          </div>
+        <Label className="text-gold-900">Bible References</Label>
+        <div className="flex gap-2 mt-1 flex-wrap">
+          {sermon.metadata.bibleReferences.map((ref) => (
+            <span
+              key={ref}
+              className="px-2 py-1 bg-gold-900/10 text-gold-900 rounded-full text-sm"
+            >
+              {ref}
+            </span>
+          ))}
         </div>
       </div>
 
       {/* Tags */}
       <div>
         <Label className="text-gold-900">Tags</Label>
-        <div className="flex gap-2 mt-1">
-          {song.metadata.tags.map((tag) => (
+        <div className="flex gap-2 mt-1 flex-wrap">
+          {sermon.metadata.tags.map((tag) => (
             <span
               key={tag}
               className="px-2 py-1 bg-gold-900/10 text-gold-900 rounded-full text-sm"
@@ -165,42 +152,49 @@ const SongDetailsModal = ({ song }: SongDetailsModalProps) => {
       {/* Description */}
       <div>
         <Label className="text-gold-900">Description</Label>
-        <p className="text-gray-400 mt-1">{song.metadata.description}</p>
+        <p className="text-gray-400 mt-1">{sermon.metadata.description}</p>
       </div>
 
-      {/* Lyrics Preview */}
+      {/* Notes */}
       <div>
-        <Label className="text-gold-900">Lyrics Preview</Label>
-        <p className="text-gray-400 mt-1 whitespace-pre-line">
-          {song.metadata.lyrics.slice(0, 100)}...
-        </p>
+        <Label className="text-gold-900">Sermon Notes</Label>
+        <p className="text-gray-400 mt-1">{sermon.metadata.notes}</p>
       </div>
 
-      {/* Stats */}
+      {/* Technical Details */}
       <div className="grid grid-cols-2 gap-4 bg-[#1A1A1A] p-4 rounded-lg">
         <div>
-          <Label className="text-gray-400">Total Plays</Label>
-          <p className="text-white">{song.plays}</p>
+          <Label className="text-gray-400">Format</Label>
+          <p className="text-white">{sermon.format}</p>
         </div>
         <div>
-          <Label className="text-gray-400">Upload Date</Label>
-          <p className="text-white">{song.uploadDate}</p>
+          <Label className="text-gray-400">File Size</Label>
+          <p className="text-white">{sermon.fileSize}</p>
+        </div>
+        <div>
+          <Label className="text-gray-400">Total Plays</Label>
+          <p className="text-white">{sermon.plays}</p>
+        </div>
+        <div>
+          <Label className="text-gray-400">Date</Label>
+          <p className="text-white">{sermon.date}</p>
         </div>
       </div>
     </div>
   );
 };
 
-export const AdminSongs = () => {
+export const AdminSermons = () => {
   const [searchQuery, setSearchQuery] = useState("");
-  const [selectedSong, setSelectedSong] = useState<
-    (typeof mockSongs)[0] | null
+  const [selectedSermon, setSelectedSermon] = useState<
+    (typeof mockSermons)[0] | null
   >(null);
 
-  const filteredSongs = mockSongs.filter(
-    (song) =>
-      song.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      song.artist.toLowerCase().includes(searchQuery.toLowerCase())
+  const filteredSermons = mockSermons.filter(
+    (sermon) =>
+      sermon.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      sermon.preacher.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      sermon.series.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
   return (
@@ -209,29 +203,29 @@ export const AdminSongs = () => {
         {/* Header */}
         <div>
           <h1 className="text-3xl font-bold text-white font-Montserrat">
-            Song Management
+            Sermon Management
           </h1>
           <p className="text-gray-400 mt-2">
-            Upload, manage, and track your platform's music library
+            Upload, organize, and track your sermon library
           </p>
         </div>
 
         {/* Stats Cards */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {/* Total Songs Card */}
+          {/* Total Sermons Card */}
           <div className="bg-[#1A1A1A] p-6 rounded-xl border border-gold-900/20">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-gray-400 text-sm">Total Songs</p>
+                <p className="text-gray-400 text-sm">Total Sermons</p>
                 <p className="text-2xl font-bold text-white mt-2">
-                  {songStats.totalSongs}
+                  {sermonStats.totalSermons}
                 </p>
                 <p className="text-gray-400 text-sm mt-2">
-                  Duration: {songStats.totalDuration}
+                  Duration: {sermonStats.totalDuration}
                 </p>
               </div>
               <div className="h-12 w-12 rounded-full bg-gold-900/10 flex items-center justify-center">
-                <Music2 className="h-6 w-6 text-gold-900" />
+                <Mic className="h-6 w-6 text-gold-900" />
               </div>
             </div>
           </div>
@@ -242,10 +236,10 @@ export const AdminSongs = () => {
               <div>
                 <p className="text-gray-400 text-sm">Total Plays</p>
                 <p className="text-2xl font-bold text-white mt-2">
-                  {songStats.totalPlays}
+                  {sermonStats.totalPlays}
                 </p>
                 <p className="text-gray-400 text-sm mt-2">
-                  Active Users: {songStats.activeUsers}
+                  Active Listeners: {sermonStats.activeListeners}
                 </p>
               </div>
               <div className="h-12 w-12 rounded-full bg-gold-900/10 flex items-center justify-center">
@@ -260,10 +254,10 @@ export const AdminSongs = () => {
               <div>
                 <p className="text-gray-400 text-sm">New This Month</p>
                 <p className="text-2xl font-bold text-white mt-2">
-                  {songStats.uploadedThisMonth}
+                  {sermonStats.uploadedThisMonth}
                 </p>
                 <p className="text-gray-400 text-sm mt-2">
-                  Most Popular: {songStats.popularGenre}
+                  Popular Category: {sermonStats.popularCategory}
                 </p>
               </div>
               <div className="h-12 w-12 rounded-full bg-gold-900/10 flex items-center justify-center">
@@ -276,9 +270,9 @@ export const AdminSongs = () => {
         {/* Action Bar */}
         <div className="flex flex-col md:flex-row gap-4 justify-between items-start md:items-center">
           <div>
-            <h2 className="text-xl font-semibold text-white">Song Library</h2>
+            <h2 className="text-xl font-semibold text-white">Sermon Library</h2>
             <p className="text-gray-400 text-sm">
-              Browse, search, and manage your music collection
+              Browse and manage your sermon collection
             </p>
           </div>
           <div className="flex gap-3">
@@ -286,39 +280,46 @@ export const AdminSongs = () => {
               <DialogTrigger asChild>
                 <Button className="bg-gold-900 hover:bg-gold-900/90">
                   <Upload className="mr-2 h-4 w-4" />
-                  Upload Song
+                  Upload Sermon
                 </Button>
               </DialogTrigger>
               <DialogContent className="sm:max-w-[500px]">
                 <DialogHeader>
-                  <DialogTitle>Upload New Song</DialogTitle>
+                  <DialogTitle>Upload New Sermon</DialogTitle>
                   <DialogDescription>
-                    Add a new song to your platform. Fill in the song details
-                    and metadata below.
+                    Add a new sermon to your platform. Fill in the sermon
+                    details and metadata below.
                   </DialogDescription>
                 </DialogHeader>
                 <div className="grid gap-4 py-4">
                   <div className="grid grid-cols-2 gap-4">
                     <div className="flex flex-col gap-2">
                       <Label htmlFor="title">Title</Label>
-                      <Input id="title" placeholder="Song title" />
+                      <Input id="title" placeholder="Sermon title" />
                     </div>
                     <div className="flex flex-col gap-2">
-                      <Label htmlFor="artist">Artist</Label>
-                      <Input id="artist" placeholder="Artist name" />
+                      <Label htmlFor="preacher">Preacher</Label>
+                      <Input id="preacher" placeholder="Preacher name" />
                     </div>
+                  </div>
+                  <div className="flex flex-col gap-2">
+                    <Label htmlFor="series">Series</Label>
+                    <Input id="series" placeholder="Sermon series" />
                   </div>
                   <div className="flex flex-col gap-2">
                     <Label htmlFor="file">Audio File</Label>
                     <Input id="file" type="file" accept="audio/*" />
                   </div>
                   <div className="flex flex-col gap-2">
-                    <Label htmlFor="genre">Genre</Label>
-                    <Input id="genre" placeholder="Song genre" />
+                    <Label htmlFor="references">Bible References</Label>
+                    <Input
+                      id="references"
+                      placeholder="e.g., John 3:16, Romans 8:28"
+                    />
                   </div>
                   <div className="flex flex-col gap-2">
                     <Label htmlFor="description">Description</Label>
-                    <Input id="description" placeholder="Song description" />
+                    <Input id="description" placeholder="Sermon description" />
                   </div>
                 </div>
                 <DialogFooter>
@@ -326,7 +327,7 @@ export const AdminSongs = () => {
                     type="submit"
                     className="bg-gold-900 hover:bg-gold-900/90"
                   >
-                    Upload Song
+                    Upload Sermon
                   </Button>
                 </DialogFooter>
               </DialogContent>
@@ -339,7 +340,7 @@ export const AdminSongs = () => {
           <div className="relative flex-1">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500 h-4 w-4" />
             <Input
-              placeholder="Search by title, artist, or genre..."
+              placeholder="Search by title, preacher, or series..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="pl-10 bg-[#1A1A1A] border-gold-900/20 text-white"
@@ -354,11 +355,11 @@ export const AdminSongs = () => {
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent>
-                <DropdownMenuLabel>Filter by Genre</DropdownMenuLabel>
-                <DropdownMenuItem>All Genres</DropdownMenuItem>
-                <DropdownMenuItem>Gospel</DropdownMenuItem>
-                <DropdownMenuItem>Contemporary Worship</DropdownMenuItem>
-                <DropdownMenuItem>Traditional</DropdownMenuItem>
+                <DropdownMenuLabel>Filter by Category</DropdownMenuLabel>
+                <DropdownMenuItem>All Categories</DropdownMenuItem>
+                <DropdownMenuItem>Teaching</DropdownMenuItem>
+                <DropdownMenuItem>Prayer</DropdownMenuItem>
+                <DropdownMenuItem>Worship</DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
             <Button variant="ghost" onClick={() => setSearchQuery("")}>
@@ -367,17 +368,17 @@ export const AdminSongs = () => {
           </div>
         </div>
 
-        {/* Songs Table */}
+        {/* Sermons Table */}
         <div className="rounded-xl border border-gold-900/20 bg-[#1A1A1A] overflow-hidden">
           <Table>
             <TableHeader>
               <TableRow className="border-gold-900/20 hover:bg-transparent">
                 <TableHead className="text-gold-900">Title</TableHead>
-                <TableHead className="text-gold-900">Artist</TableHead>
+                <TableHead className="text-gold-900">Preacher</TableHead>
+                <TableHead className="text-gold-900">Series</TableHead>
                 <TableHead className="text-gold-900">Duration</TableHead>
-                <TableHead className="text-gold-900">Genre</TableHead>
-                <TableHead className="text-gold-900">Uploaded By</TableHead>
-                <TableHead className="text-gold-900">Upload Date</TableHead>
+                <TableHead className="text-gold-900">Category</TableHead>
+                <TableHead className="text-gold-900">Date</TableHead>
                 <TableHead className="text-gold-900">Plays</TableHead>
                 <TableHead className="text-gold-900 text-right">
                   Actions
@@ -385,36 +386,37 @@ export const AdminSongs = () => {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {filteredSongs.map((song) => (
-                <TableRow key={song.id} className="border-gold-900/20">
+              {filteredSermons.map((sermon) => (
+                <TableRow key={sermon.id} className="border-gold-900/20">
                   <TableCell className="font-medium text-white">
-                    {song.title}
+                    {sermon.title}
                   </TableCell>
-                  <TableCell className="text-gray-400">{song.artist}</TableCell>
+                  <TableCell className="text-gray-400">
+                    {sermon.preacher}
+                  </TableCell>
+                  <TableCell className="text-gray-400">
+                    {sermon.series}
+                  </TableCell>
                   <TableCell className="text-gray-400">
                     <div className="flex items-center gap-1">
                       <Clock className="h-4 w-4" />
-                      {song.duration}
+                      {sermon.duration}
                     </div>
                   </TableCell>
                   <TableCell>
                     <span className="px-2 py-1 bg-gold-900/10 text-gold-900 rounded-full text-xs">
-                      {song.genre}
+                      {sermon.category}
                     </span>
                   </TableCell>
                   <TableCell className="text-gray-400">
                     <div className="flex items-center gap-1">
-                      <User className="h-4 w-4" />
-                      {song.uploadedBy}
+                      <Calendar className="h-4 w-4" />
+                      {sermon.date}
                     </div>
                   </TableCell>
                   <TableCell className="text-gray-400">
-                    <div className="flex items-center gap-1">
-                      <Calendar className="h-4 w-4" />
-                      {song.uploadDate}
-                    </div>
+                    {sermon.plays}
                   </TableCell>
-                  <TableCell className="text-gray-400">{song.plays}</TableCell>
                   <TableCell className="text-right">
                     <div className="flex justify-end gap-2">
                       <Dialog>
@@ -422,17 +424,17 @@ export const AdminSongs = () => {
                           <Button
                             variant="ghost"
                             className="h-8 w-8 p-0"
-                            onClick={() => setSelectedSong(song)}
+                            onClick={() => setSelectedSermon(sermon)}
                           >
                             <MoreHorizontal className="h-4 w-4 text-gold-900" />
                           </Button>
                         </DialogTrigger>
                         <DialogContent className="max-w-[600px]">
                           <DialogHeader>
-                            <DialogTitle>Song Details</DialogTitle>
+                            <DialogTitle>Sermon Details</DialogTitle>
                           </DialogHeader>
-                          {selectedSong && (
-                            <SongDetailsModal song={selectedSong} />
+                          {selectedSermon && (
+                            <SermonDetailsModal sermon={selectedSermon} />
                           )}
                         </DialogContent>
                       </Dialog>
