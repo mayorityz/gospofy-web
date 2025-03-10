@@ -3,7 +3,7 @@ import UserSideBar from "@/components/navigation/UserSideBar";
 import { useState } from "react";
 
 export const UserLayout = () => {
-  const [currentSong, setCurrentSong] = useState<{
+  const [currentSong] = useState<{
     title: string;
     artist: string;
     coverArt: string;

@@ -64,7 +64,7 @@ const libraryItems: NavigationItem[] = [
 
 const UserSideBar = () => {
   const location = useLocation();
-  const [isExpanded, setIsExpanded] = useState(true);
+  const [isExpanded] = useState(true);
 
   const isActive = (path: string) => location.pathname === path;
 
@@ -72,22 +72,15 @@ const UserSideBar = () => {
     <aside
       className={`fixed top-0 left-0 h-screen bg-black border-r border-gold-900/20 transition-all duration-300 ${
         isExpanded ? "w-[300px]" : "w-20"
-      }`}
-    >
+      }`}>
       <div className="flex flex-col h-full">
         {/* Logo */}
         <Link to="/app" className="p-6">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-lg bg-gold-900/10 flex items-center justify-center">
-              <img
-                src="/images/logo.png"
-                alt="Gospofy"
-                className="w-full h-full object-cover"
-              />
+              <img src="/images/logo.png" alt="Gospofy" className="w-full h-full object-cover" />
             </div>
-            {isExpanded && (
-              <span className="text-xl font-bold text-white">Gospofy</span>
-            )}
+            {isExpanded && <span className="text-xl font-bold text-white">Gospofy</span>}
           </div>
         </Link>
 
@@ -103,8 +96,7 @@ const UserSideBar = () => {
                       isActive(item.path)
                         ? "bg-gold-900/10 text-gold-900"
                         : "text-gray-400 hover:text-gold-900 hover:bg-gold-900/5"
-                    }`}
-                  >
+                    }`}>
                     {item.icon}
                     {isExpanded && <span>{item.title}</span>}
                   </Button>
@@ -117,16 +109,10 @@ const UserSideBar = () => {
           <div className="mt-8">
             <div className="px-3 mb-4 flex items-center justify-between">
               {isExpanded && (
-                <span className="text-sm font-semibold text-gray-400">
-                  Your Library
-                </span>
+                <span className="text-sm font-semibold text-gray-400">Your Library</span>
               )}
               {isExpanded && (
-                <Button
-                  size="icon"
-                  variant="ghost"
-                  className="text-gray-400 hover:text-gold-900"
-                >
+                <Button size="icon" variant="ghost" className="text-gray-400 hover:text-gold-900">
                   <Plus className="w-4 h-4" />
                 </Button>
               )}
@@ -141,8 +127,7 @@ const UserSideBar = () => {
                         isActive(item.path)
                           ? "bg-gold-900/10 text-gold-900"
                           : "text-gray-400 hover:text-gold-900 hover:bg-gold-900/5"
-                      }`}
-                    >
+                      }`}>
                       {item.icon}
                       {isExpanded && <span>{item.title}</span>}
                     </Button>
@@ -159,8 +144,7 @@ const UserSideBar = () => {
             <motion.div whileHover={{ x: 4 }} whileTap={{ scale: 0.98 }}>
               <Button
                 variant="ghost"
-                className="w-full justify-start gap-3 text-gray-400 hover:text-gold-900"
-              >
+                className="w-full justify-start gap-3 text-gray-400 hover:text-gold-900">
                 <Settings className="w-5 h-5" />
                 {isExpanded && <span>Settings</span>}
               </Button>
@@ -170,8 +154,7 @@ const UserSideBar = () => {
             <motion.div whileHover={{ x: 4 }} whileTap={{ scale: 0.98 }}>
               <Button
                 variant="ghost"
-                className="w-full justify-start gap-3 text-gray-400 hover:text-gold-900"
-              >
+                className="w-full justify-start gap-3 text-gray-400 hover:text-gold-900">
                 <LogOut className="w-5 h-5" />
                 {isExpanded && <span>Sign Out</span>}
               </Button>
