@@ -10,14 +10,14 @@ import MiniPlayer from "./player/MiniPlayer";
 const currentSong = {
   title: "Amazing Grace",
   artist: "Gospel Choir",
-  coverArt: "/images/song-cover.jpg",
+  coverArt: "/images/logo.png",
   duration: "4:35",
 };
 
 const nextSong = {
   title: "Holy Spirit",
   artist: "Worship Team",
-  coverArt: "/images/next-song-cover.jpg",
+  coverArt: "/images/logo.png",
 };
 
 const MobileAppPreview = () => {
