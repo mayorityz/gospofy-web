@@ -1,4 +1,5 @@
 import { useState } from "react";
+import axios from "axios";
 import {
   Music2,
   Clock,
@@ -89,8 +90,7 @@ const mockSongs: Song[] = [
     status: "rejected",
     plays: 0,
     likes: 0,
-    rejectionReason:
-      "Audio quality does not meet our standards. Please remaster the track.",
+    rejectionReason: "Audio quality does not meet our standards. Please remaster the track.",
   },
   {
     id: "4",
@@ -129,18 +129,10 @@ const SongDetailsDialog = ({ song }: { song: Song }) => {
           <div className="space-y-1">
             <p className="text-sm text-gray-400">Status</p>
             <div className="flex items-center gap-2">
-              {song.status === "approved" && (
-                <CheckCircle2 className="w-4 h-4 text-green-500" />
-              )}
-              {song.status === "pending" && (
-                <Clock className="w-4 h-4 text-yellow-500" />
-              )}
-              {song.status === "rejected" && (
-                <XCircle className="w-4 h-4 text-red-500" />
-              )}
-              {song.status === "suspended" && (
-                <PauseCircle className="w-4 h-4 text-orange-500" />
-              )}
+              {song.status === "approved" && <CheckCircle2 className="w-4 h-4 text-green-500" />}
+              {song.status === "pending" && <Clock className="w-4 h-4 text-yellow-500" />}
+              {song.status === "rejected" && <XCircle className="w-4 h-4 text-red-500" />}
+              {song.status === "suspended" && <PauseCircle className="w-4 h-4 text-orange-500" />}
               <span
                 className={`capitalize ${
                   song.status === "approved"
@@ -150,8 +142,7 @@ const SongDetailsDialog = ({ song }: { song: Song }) => {
                     : song.status === "rejected"
                     ? "text-red-500"
                     : "text-orange-500"
-                }`}
-              >
+                }`}>
                 {song.status}
               </span>
             </div>
@@ -166,21 +157,15 @@ const SongDetailsDialog = ({ song }: { song: Song }) => {
         <div className="grid grid-cols-3 gap-4">
           <div className="bg-[#1A1A1A] p-4 rounded-lg">
             <p className="text-sm text-gray-400">Duration</p>
-            <p className="text-xl font-semibold text-white mt-1">
-              {song.duration}
-            </p>
+            <p className="text-xl font-semibold text-white mt-1">{song.duration}</p>
           </div>
           <div className="bg-[#1A1A1A] p-4 rounded-lg">
             <p className="text-sm text-gray-400">Total Plays</p>
-            <p className="text-xl font-semibold text-white mt-1">
-              {song.plays}
-            </p>
+            <p className="text-xl font-semibold text-white mt-1">{song.plays}</p>
           </div>
           <div className="bg-[#1A1A1A] p-4 rounded-lg">
             <p className="text-sm text-gray-400">Likes</p>
-            <p className="text-xl font-semibold text-white mt-1">
-              {song.likes}
-            </p>
+            <p className="text-xl font-semibold text-white mt-1">{song.likes}</p>
           </div>
         </div>
 
@@ -188,13 +173,9 @@ const SongDetailsDialog = ({ song }: { song: Song }) => {
         {(song.adminFeedback || song.rejectionReason) && (
           <div className="bg-[#1A1A1A] p-4 rounded-lg">
             <p className="text-sm text-gray-400 mb-2">
-              {song.status === "rejected"
-                ? "Rejection Reason"
-                : "Admin Feedback"}
+              {song.status === "rejected" ? "Rejection Reason" : "Admin Feedback"}
             </p>
-            <p className="text-white">
-              {song.rejectionReason || song.adminFeedback}
-            </p>
+            <p className="text-white">{song.rejectionReason || song.adminFeedback}</p>
           </div>
         )}
 
@@ -229,25 +210,39 @@ const UploadSongDialog = () => {
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsUploading(true);
+    try {
+      e.preventDefault();
+      setIsUploading(true);
 
-    // Here you would typically:
-    // 1. Create a FormData object
-    // 2. Send it to your backend
-    // 3. Handle the response
+      const formData = new FormData();
+      formData.append("title", songData.title);
+      formData.append("genre", songData.genre);
+      formData.append("audioFile", songData.audioFile as Blob);
+      formData.append("coverArt", songData.coverArt as Blob);
 
-    // Simulating upload delay
-    await new Promise((resolve) => setTimeout(resolve, 2000));
-    setIsUploading(false);
+      console.log(formData);
 
-    // Reset form
-    setSongData({
-      title: "",
-      genre: "",
-      audioFile: null,
-      coverArt: null,
-    });
+      const response = await axios.post("http://localhost:7890/api/media/upload", formData, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      });
+      console.log(response);
+      setIsUploading(false);
+
+      // Reset form
+      setSongData({
+        title: "",
+        genre: "",
+        audioFile: null,
+        coverArt: null,
+      });
+    } catch (error) {
+      console.error("Error uploading song:", error);
+      // toast.error("Failed to upload song. Please try again.");
+    } finally {
+      setIsUploading(false);
+    }
   };
 
   return (
@@ -255,54 +250,41 @@ const UploadSongDialog = () => {
       <DialogHeader>
         <DialogTitle>Upload New Song</DialogTitle>
         <DialogDescription>
-          Fill in the details below to upload your song. Required fields are
-          marked with *
+          Fill in the details below to upload your song. Required fields are marked with *
         </DialogDescription>
       </DialogHeader>
-      <form onSubmit={handleSubmit} className="space-y-6">
+      <form onSubmit={handleSubmit} className="space-y-6" encType="multipart/form-data">
         <div className="space-y-4">
           <div className="space-y-2">
-            <label
-              htmlFor="title"
-              className="text-sm font-medium text-gray-200"
-            >
+            <label htmlFor="title" className="text-sm font-medium text-gray-200">
               Title *
             </label>
             <Input
               id="title"
               placeholder="Enter song title"
               value={songData.title}
-              onChange={(e) =>
-                setSongData((prev) => ({ ...prev, title: e.target.value }))
-              }
+              onChange={(e) => setSongData((prev) => ({ ...prev, title: e.target.value }))}
               required
               className="bg-[#1A1A1A] border-gold-900/20 text-white"
             />
           </div>
 
           <div className="space-y-2">
-            <label
-              htmlFor="genre"
-              className="text-sm font-medium text-gray-200"
-            >
+            <label htmlFor="genre" className="text-sm font-medium text-gray-200">
               Genre *
             </label>
             <Input
               id="genre"
               placeholder="e.g., Gospel, Worship, Contemporary"
               value={songData.genre}
-              onChange={(e) =>
-                setSongData((prev) => ({ ...prev, genre: e.target.value }))
-              }
+              onChange={(e) => setSongData((prev) => ({ ...prev, genre: e.target.value }))}
               required
               className="bg-[#1A1A1A] border-gold-900/20 text-white"
             />
           </div>
 
           <div className="space-y-2">
-            <label className="text-sm font-medium text-gray-200">
-              Audio File *
-            </label>
+            <label className="text-sm font-medium text-gray-200">Audio File *</label>
             <div className="flex items-center gap-4">
               <Input
                 type="file"
@@ -312,17 +294,13 @@ const UploadSongDialog = () => {
                 className="bg-[#1A1A1A] border-gold-900/20 text-white file:text-gold-900 file:bg-gold-900/10"
               />
               {songData.audioFile && (
-                <span className="text-sm text-gray-400">
-                  {songData.audioFile.name}
-                </span>
+                <span className="text-sm text-gray-400">{songData.audioFile.name}</span>
               )}
             </div>
           </div>
 
           <div className="space-y-2">
-            <label className="text-sm font-medium text-gray-200">
-              Cover Art
-            </label>
+            <label className="text-sm font-medium text-gray-200">Cover Art</label>
             <div className="flex items-center gap-4">
               <Input
                 type="file"
@@ -331,9 +309,7 @@ const UploadSongDialog = () => {
                 className="bg-[#1A1A1A] border-gold-900/20 text-white file:text-gold-900 file:bg-gold-900/10"
               />
               {songData.coverArt && (
-                <span className="text-sm text-gray-400">
-                  {songData.coverArt.name}
-                </span>
+                <span className="text-sm text-gray-400">{songData.coverArt.name}</span>
               )}
             </div>
           </div>
@@ -348,8 +324,7 @@ const UploadSongDialog = () => {
           <Button
             type="submit"
             disabled={isUploading}
-            className="bg-gold-900 text-white hover:bg-gold-900/90"
-          >
+            className="bg-gold-900 text-white hover:bg-gold-900/90">
             {isUploading ? (
               <>
                 <span className="animate-pulse">Uploading...</span>
@@ -369,16 +344,11 @@ const UploadSongDialog = () => {
 
 export const Songs = () => {
   const [searchQuery, setSearchQuery] = useState("");
-  const [statusFilter, setStatusFilter] = useState<Song["status"] | "all">(
-    "all"
-  );
+  const [statusFilter, setStatusFilter] = useState<Song["status"] | "all">("all");
 
   const filteredSongs = mockSongs.filter((song) => {
-    const matchesSearch = song.title
-      .toLowerCase()
-      .includes(searchQuery.toLowerCase());
-    const matchesStatus =
-      statusFilter === "all" || song.status === statusFilter;
+    const matchesSearch = song.title.toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesStatus = statusFilter === "all" || song.status === statusFilter;
     return matchesSearch && matchesStatus;
   });
 
@@ -388,9 +358,7 @@ export const Songs = () => {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold text-white">Your Songs</h1>
-          <p className="text-gray-400 mt-2">
-            Manage and monitor your music catalog
-          </p>
+          <p className="text-gray-400 mt-2">Manage and monitor your music catalog</p>
         </div>
         <Dialog>
           <DialogTrigger asChild>
@@ -409,16 +377,10 @@ export const Songs = () => {
           <div className="flex items-center justify-between">
             <div>
               <p className="text-gray-400 text-sm">Total Songs</p>
-              <p className="text-2xl font-bold text-white mt-2">
-                {songStats.total}
-              </p>
+              <p className="text-2xl font-bold text-white mt-2">{songStats.total}</p>
               <div className="flex gap-2 mt-2">
-                <span className="text-xs text-green-500">
-                  {songStats.approved} approved
-                </span>
-                <span className="text-xs text-yellow-500">
-                  {songStats.pending} pending
-                </span>
+                <span className="text-xs text-green-500">{songStats.approved} approved</span>
+                <span className="text-xs text-yellow-500">{songStats.pending} pending</span>
               </div>
             </div>
             <div className="h-12 w-12 rounded-xl bg-gold-900/10 flex items-center justify-center">
@@ -431,12 +393,8 @@ export const Songs = () => {
           <div className="flex items-center justify-between">
             <div>
               <p className="text-gray-400 text-sm">Total Plays</p>
-              <p className="text-2xl font-bold text-white mt-2">
-                {songStats.totalPlays}
-              </p>
-              <p className="text-green-500 text-sm mt-2">
-                {songStats.monthlyPlays} this month
-              </p>
+              <p className="text-2xl font-bold text-white mt-2">{songStats.totalPlays}</p>
+              <p className="text-green-500 text-sm mt-2">{songStats.monthlyPlays} this month</p>
             </div>
             <div className="h-12 w-12 rounded-xl bg-gold-900/10 flex items-center justify-center">
               <BarChart2 className="w-5 h-5 text-gold-900" />
@@ -448,9 +406,7 @@ export const Songs = () => {
           <div className="flex items-center justify-between">
             <div>
               <p className="text-gray-400 text-sm">Review Status</p>
-              <p className="text-2xl font-bold text-white mt-2">
-                {songStats.pending}
-              </p>
+              <p className="text-2xl font-bold text-white mt-2">{songStats.pending}</p>
               <p className="text-gray-400 text-sm mt-2">Pending review</p>
             </div>
             <div className="h-12 w-12 rounded-xl bg-gold-900/10 flex items-center justify-center">
@@ -463,9 +419,7 @@ export const Songs = () => {
           <div className="flex items-center justify-between">
             <div>
               <p className="text-gray-400 text-sm">Avg. Approval Time</p>
-              <p className="text-2xl font-bold text-white mt-2">
-                {songStats.averageApprovalTime}
-              </p>
+              <p className="text-2xl font-bold text-white mt-2">{songStats.averageApprovalTime}</p>
               <p className="text-gray-400 text-sm mt-2">From submission</p>
             </div>
             <div className="h-12 w-12 rounded-xl bg-gold-900/10 flex items-center justify-center">
@@ -495,9 +449,7 @@ export const Songs = () => {
           </DropdownMenuTrigger>
           <DropdownMenuContent>
             <DropdownMenuLabel>Select Status</DropdownMenuLabel>
-            <DropdownMenuItem onClick={() => setStatusFilter("all")}>
-              All Songs
-            </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => setStatusFilter("all")}>All Songs</DropdownMenuItem>
             <DropdownMenuItem onClick={() => setStatusFilter("approved")}>
               Approved
             </DropdownMenuItem>
@@ -526,17 +478,13 @@ export const Songs = () => {
               <TableHead className="text-gold-900">Upload Date</TableHead>
               <TableHead className="text-gold-900">Plays</TableHead>
               <TableHead className="text-gold-900">Likes</TableHead>
-              <TableHead className="text-gold-900 text-right">
-                Actions
-              </TableHead>
+              <TableHead className="text-gold-900 text-right">Actions</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {filteredSongs.map((song) => (
               <TableRow key={song.id} className="border-gold-900/20">
-                <TableCell className="font-medium text-white">
-                  {song.title}
-                </TableCell>
+                <TableCell className="font-medium text-white">{song.title}</TableCell>
                 <TableCell className="text-gray-400">{song.genre}</TableCell>
                 <TableCell className="text-gray-400">
                   <div className="flex items-center gap-1">
@@ -549,12 +497,8 @@ export const Songs = () => {
                     {song.status === "approved" && (
                       <CheckCircle2 className="w-4 h-4 text-green-500" />
                     )}
-                    {song.status === "pending" && (
-                      <Clock className="w-4 h-4 text-yellow-500" />
-                    )}
-                    {song.status === "rejected" && (
-                      <XCircle className="w-4 h-4 text-red-500" />
-                    )}
+                    {song.status === "pending" && <Clock className="w-4 h-4 text-yellow-500" />}
+                    {song.status === "rejected" && <XCircle className="w-4 h-4 text-red-500" />}
                     {song.status === "suspended" && (
                       <PauseCircle className="w-4 h-4 text-orange-500" />
                     )}
@@ -567,8 +511,7 @@ export const Songs = () => {
                           : song.status === "rejected"
                           ? "text-red-500"
                           : "text-orange-500"
-                      }`}
-                    >
+                      }`}>
                       {song.status}
                     </span>
                   </div>
