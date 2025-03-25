@@ -25,7 +25,7 @@ const navigationItems: NavigationItem[] = [
   {
     title: "Home",
     icon: <Home className="w-5 h-5" />,
-    path: "/",
+    path: "/user",
   },
   {
     title: "Songs",
@@ -88,11 +88,11 @@ const UserSideBar = () => {
         <nav className="flex-1 px-3">
           <div className="space-y-1">
             {navigationItems.map((item) => (
-              <Link key={item.title} to={item.path}>
+              <Link key={item.title} to={item.path} className="">
                 <motion.div whileHover={{ x: 4 }} whileTap={{ scale: 0.98 }}>
                   <Button
                     variant="ghost"
-                    className={`w-full justify-start gap-3 ${
+                    className={`w-full justify-start gap-3 cursor-pointer ${
                       isActive(item.path)
                         ? "bg-gold-900/10 text-gold-900"
                         : "text-gray-400 hover:text-gold-900 hover:bg-gold-900/5"
@@ -119,7 +119,7 @@ const UserSideBar = () => {
             </div>
             <div className="space-y-1">
               {libraryItems.map((item) => (
-                <Link key={item.title} to={item.path}>
+                <Link key={item.title} to={item.path} className="cursor-pointer">
                   <motion.div whileHover={{ x: 4 }} whileTap={{ scale: 0.98 }}>
                     <Button
                       variant="ghost"

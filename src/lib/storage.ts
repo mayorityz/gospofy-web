@@ -1,8 +1,9 @@
 export enum STORAGE_KEY {
-  TOKEN = "token",
+  TOKEN = "_t__t__sopfy",
+  EMAIL = "email",
 }
 
-class Storage {
+class LocalStorage {
   private storage: Storage;
 
   constructor() {
@@ -26,4 +27,4 @@ class Storage {
   }
 }
 
-export default Storage;
+export default LocalStorage;

@@ -35,7 +35,7 @@ export const FormInput = ({
           type={type}
           value={value}
           onChange={onChange}
-          className="w-full h-[50px] p-2 pl-10 rounded-md border border-gray-700 bg-gray-800 text-white focus:border-gold focus:ring-1 focus:ring-gold-900/50 focus:outline-none transition-colors"
+          className="w-full h-[50px] p-2 pl-10 rounded-md border border-gray-700 bg-gray-800 text-white focus:border-gold focus:ring-1 focus:ring-gold-900/50 focus:outline-none transition-colors font-DM-Sans"
           placeholder={placeholder}
           required={required}
         />

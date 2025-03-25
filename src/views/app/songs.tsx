@@ -39,6 +39,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import EpisodeUpload from "@/components/EpisodeUpload";
 
 interface Song {
   id: string;
@@ -58,18 +59,6 @@ interface SongUpload {
   genre: string;
   audioFile: File | null;
   coverArt: File | null;
-}
-
-interface Album {
-  title: string;
-  coverArt: File | null;
-  tracks: Track[];
-}
-
-interface Track {
-  title: string;
-  duration: string;
-  audioFile: File | null;
 }
 
 const mockSongs: Song[] = [
@@ -354,221 +343,6 @@ const UploadSongDialog = () => {
   );
 };
 
-const UploadAlbumDialog = () => {
-  const [currentStep, setCurrentStep] = useState(0);
-  const [albumData, setAlbumData] = useState<Album>({
-    title: "",
-    coverArt: null,
-    tracks: [{ title: "", duration: "", audioFile: null }],
-  });
-
-  const [isUploading, setIsUploading] = useState(false);
-
-  const handleAlbumChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    const { name, value } = e.target;
-    setAlbumData((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
-  };
-
-  const handleCoverArtChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0] || null;
-    setAlbumData((prev) => ({
-      ...prev,
-      coverArt: file,
-    }));
-  };
-
-  const handleTrackChange = (index: number, field: keyof Track, value: string | File | null) => {
-    setAlbumData((prev) => {
-      const updatedTracks = [...prev.tracks];
-      updatedTracks[index] = {
-        ...updatedTracks[index],
-        [field]: value,
-      };
-      return {
-        ...prev,
-        tracks: updatedTracks,
-      };
-    });
-  };
-
-  const addTrack = () => {
-    setAlbumData((prev) => ({
-      ...prev,
-      tracks: [...prev.tracks, { title: "", duration: "", audioFile: null }],
-    }));
-  };
-
-  const removeTrack = (index: number) => {
-    if (albumData.tracks.length <= 1) return;
-    setAlbumData((prev) => ({
-      ...prev,
-      tracks: prev.tracks.filter((_, i) => i !== index),
-    }));
-  };
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsUploading(true);
-
-    try {
-      const formData = new FormData();
-      formData.append("title", albumData.title);
-      if (albumData.coverArt) formData.append("coverArt", albumData.coverArt);
-
-      // Append track data
-      albumData.tracks.forEach((track, index) => {
-        formData.append(`tracks[${index}][title]`, track.title);
-        formData.append(`tracks[${index}][duration]`, track.duration);
-        if (track.audioFile) {
-          formData.append(`tracks[${index}][audioFile]`, track.audioFile);
-        }
-      });
-
-      const response = await axios.post("/api/albums/upload", formData, {
-        headers: { "Content-Type": "multipart/form-data" },
-      });
-
-      console.log(response);
-      // Reset form
-      setAlbumData({
-        title: "",
-        coverArt: null,
-        tracks: [{ title: "", duration: "", audioFile: null }],
-      });
-    } catch (error) {
-      console.error("Error uploading album:", error);
-    } finally {
-      setIsUploading(false);
-    }
-  };
-
-  const handleNext = () => {
-    setCurrentStep((prev) => Math.min(prev + 1, 1));
-  };
-
-  const handleBack = () => {
-    setCurrentStep((prev) => Math.max(prev - 1, 0));
-  };
-
-  return (
-    <DialogContent className="sm:max-w-[600px] max-h-[80vh] overflow-hidden flex flex-col">
-      <DialogHeader>
-        <DialogTitle>Upload New Album</DialogTitle>
-        <DialogDescription>Fill in the details below to upload your album.</DialogDescription>
-      </DialogHeader>
-      <form onSubmit={handleSubmit} className="flex-1 overflow-y-auto px-[2px] pb-1">
-        {currentStep === 0 && (
-          <div className="space-y-4">
-            <div className="space-y-2">
-              <label className="text-sm font-medium">Album Title *</label>
-              <Input
-                value={albumData.title}
-                onChange={handleAlbumChange}
-                name="title"
-                required
-                className="border-gold-900/20"
-              />
-            </div>
-
-            <div className="space-y-2">
-              <label className="text-sm font-medium">Cover Art *</label>
-              <Input
-                type="file"
-                accept="image/*"
-                onChange={handleCoverArtChange}
-                required
-                className="border-gold-900/20"
-              />
-              {albumData.coverArt && (
-                <p className="text-sm text-gray-500">Selected: {albumData.coverArt.name}</p>
-              )}
-            </div>
-          </div>
-        )}
-
-        {currentStep === 1 && (
-          <div className="space-y-4 max-h-[40vh] overflow-y-auto pr-2">
-            <h3 className="text-base font-semibold">Tracks</h3>
-            {albumData.tracks.map((track, index) => (
-              <div key={index} className="p-4 border border-gold-900/20 rounded-lg space-y-4">
-                <div className="flex justify-between items-center">
-                  <h4 className="font-medium">Track {index + 1}</h4>
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => removeTrack(index)}
-                    disabled={albumData.tracks.length <= 1}
-                    className="h-8 w-8 p-0 text-red-500">
-                    <XCircle className="h-4 w-4" />
-                  </Button>
-                </div>
-
-                <div className="space-y-2">
-                  <label className="text-sm font-medium">Track Title *</label>
-                  <Input
-                    value={track.title}
-                    onChange={(e) => handleTrackChange(index, "title", e.target.value)}
-                    required
-                    className="border-gold-900/20"
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <label className="text-sm font-medium">Duration (e.g. 3:45) *</label>
-                  <Input
-                    value={track.duration}
-                    onChange={(e) => handleTrackChange(index, "duration", e.target.value)}
-                    required
-                    className="border-gold-900/20"
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <label className="text-sm font-medium">Audio File *</label>
-                  <Input
-                    type="file"
-                    accept="audio/*"
-                    onChange={(e) =>
-                      handleTrackChange(index, "audioFile", e.target.files?.[0] || null)
-                    }
-                    required
-                    className="border-gold-900/20"
-                  />
-                  {track.audioFile && (
-                    <p className="text-sm text-gray-500">Selected: {track.audioFile.name}</p>
-                  )}
-                </div>
-              </div>
-            ))}
-            <Button
-              type="button"
-              onClick={addTrack}
-              className="bg-gold-900 text-white hover:bg-gold-900/90">
-              <Plus className="w-3.5 h-3.5 mr-1" />
-              Add Track
-            </Button>
-          </div>
-        )}
-
-        <div className="flex justify-between mt-4">
-          {currentStep > 0 && (
-            <Button type="button" onClick={handleBack} className="bg-gray-500 text-white">
-              Back
-            </Button>
-          )}
-          <Button type="submit" className="bg-gold-900 text-white hover:bg-gold-900/90">
-            {currentStep === 1 ? (isUploading ? "Uploading..." : "Upload Album") : "Next"}
-          </Button>
-        </div>
-      </form>
-    </DialogContent>
-  );
-};
-
 export const Songs = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState<Song["status"] | "all">("all");
@@ -587,24 +361,18 @@ export const Songs = () => {
           <h1 className="text-3xl font-bold text-white">Your Songs</h1>
           <p className="text-gray-400 mt-2">Manage and monitor your music catalog</p>
         </div>
-        <Dialog>
-          <DialogTrigger asChild>
-            <Button className="bg-gold-900 text-white hover:bg-gold-900/90">
-              <Plus className="w-4 h-4 mr-2" />
-              Upload Song
-            </Button>
-          </DialogTrigger>
-          <UploadSongDialog />
-        </Dialog>
-        <Dialog>
-          <DialogTrigger asChild>
-            <Button className="bg-gold-900 text-white hover:bg-gold-900/90">
-              <Plus className="w-4 h-4 mr-2" />
-              Upload Album
-            </Button>
-          </DialogTrigger>
-          <UploadAlbumDialog />
-        </Dialog>
+        <div className="flex gap-4">
+          <Dialog>
+            <DialogTrigger asChild>
+              <Button className="bg-gold-900 text-white hover:bg-gold-900/90">
+                <Plus className="w-4 h-4 mr-2" />
+                Upload Song
+              </Button>
+            </DialogTrigger>
+            <UploadSongDialog />
+          </Dialog>
+          <EpisodeUpload type="podcast" />
+        </div>
       </div>
 
       {/* Stats Overview */}

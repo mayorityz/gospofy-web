@@ -1,6 +1,6 @@
 import axios from "axios";
-import Storage, { STORAGE_KEY } from "../src/lib/storage";
-const BASEURL = "http://localhost:8000/app";
+import LocalStorage, { STORAGE_KEY } from "@/lib/storage";
+const BASEURL = "http://localhost:7890/api";
 
 export enum REQUEST_TYPE {
   GET = "GET",
@@ -11,7 +11,8 @@ export enum REQUEST_TYPE {
 
 const REQUEST = async (type: REQUEST_TYPE, url: string, data?: any) => {
   try {
-    const token = Storage.read(STORAGE_KEY.TOKEN);
+    const storage = new LocalStorage();
+    const token = storage.read(STORAGE_KEY.TOKEN);
     const response = await axios({
       method: type,
       url: `${BASEURL}${url}`,
@@ -22,8 +23,11 @@ const REQUEST = async (type: REQUEST_TYPE, url: string, data?: any) => {
     });
 
     return response.data;
-  } catch (error) {
-    console.error(error);
+  } catch (error: any) {
+    console.log(error.response.data.message);
+    if (error.response) {
+      throw new Error(error.response.data.message);
+    }
     throw error;
   }
 };

@@ -1,9 +1,15 @@
 import REQUEST, { REQUEST_TYPE } from ".";
 
 const AUTH_ROUTES = {
-  LOGIN: "/auth/login",
-  REGISTER: "/auth/register",
-  VERIFY_EMAIL: "/auth/verify-email",
+  // user auth routes
+  LOGIN: "/users/login",
+  REGISTER: "/users/create-new-account",
+  VERIFY_EMAIL: "/users/verify-user",
+
+  // admin auth routes
+  ADMIN_LOGIN: "/auth/admin/login",
+  ADMIN_REGISTER: "/auth/admin/register",
+  ADMIN_VERIFY_EMAIL: "/auth/admin/verify-email",
 };
 
 const CREATE_ACCOUNT = async (data: any) => {

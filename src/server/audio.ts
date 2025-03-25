@@ -2,6 +2,7 @@ import REQUEST, { REQUEST_TYPE } from ".";
 
 const AUDIO_ROUTES = {
   UPLOAD: "/audio/upload",
+  UPLOAD_EPISODE: "/media/upload-episode",
   UPLOAD_PODCAST: "/audio/upload-podcast",
   UPLOAD_SERMON: "/audio/upload-sermon",
   GET_SONGS: "/audio/get-songs",
@@ -9,6 +10,11 @@ const AUDIO_ROUTES = {
   GET_SERMONS: "/audio/get-sermons",
   GET_GENRES: "/audio/get-genres",
   DELETE_AUDIO: "/audio/delete",
+};
+
+const UPLOAD_EPISODE = async (data: any) => {
+  const response = await REQUEST(REQUEST_TYPE.POST, AUDIO_ROUTES.UPLOAD_EPISODE, data);
+  return response;
 };
 
 const UPLOAD_AUDIO = async (data: any) => {
@@ -52,6 +58,7 @@ const DELETE_AUDIO = async (data: any) => {
 };
 
 export {
+  UPLOAD_EPISODE,
   UPLOAD_AUDIO,
   UPLOAD_PODCAST,
   UPLOAD_SERMON,
