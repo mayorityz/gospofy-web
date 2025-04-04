@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -8,9 +8,15 @@ import {
   DialogTitle,
   DialogDescription,
 } from "@/components/ui/dialog";
-import { Plus } from "lucide-react";
+import { Plus, Loader2 } from "lucide-react";
+import { toast } from "sonner";
 
-import { UPLOAD_EPISODE } from "@/server/audio";
+import { UPLOAD_EPISODE, GET_LIST_AUDIO_CATEGORIES } from "@/server/audio";
+
+interface AudioCategory {
+  _id: string;
+  title: string;
+}
 
 interface Episode {
   title: string;
@@ -18,7 +24,21 @@ interface Episode {
   audioFile: File | null;
 }
 
-export default function EpisodeUpload({ type }: { type: "podcast" | "sermon" }) {
+export default function EpisodeUpload({ type }: { type: "podcast" | "sermon" | "album" }) {
+  const [audioCategories, setAudioCategories] = useState<AudioCategory[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
+
+  const getAudioCategories = async () => {
+    const response = await GET_LIST_AUDIO_CATEGORIES();
+    if (response.success) {
+      setAudioCategories(response.data);
+    }
+  };
+
+  useEffect(() => {
+    getAudioCategories();
+  }, []);
+
   const [podcastData, setPodcastData] = useState({
     title: "",
     description: "",
@@ -41,6 +61,14 @@ export default function EpisodeUpload({ type }: { type: "podcast" | "sermon" }) 
     setPodcastData({
       ...podcastData,
       [name]: value,
+    });
+  };
+
+  const handleAudioCategoryChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const { value } = e.target;
+    setPodcastData({
+      ...podcastData,
+      genre: value,
     });
   };
 
@@ -74,6 +102,7 @@ export default function EpisodeUpload({ type }: { type: "podcast" | "sermon" }) 
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    setIsLoading(true);
 
     try {
       const formData = new FormData();
@@ -83,6 +112,7 @@ export default function EpisodeUpload({ type }: { type: "podcast" | "sermon" }) 
         title: podcastData.title,
         description: podcastData.description,
         genre: podcastData.genre,
+        type,
       };
       formData.append("podcastMetadata", JSON.stringify(podcastMetadata));
 
@@ -107,25 +137,30 @@ export default function EpisodeUpload({ type }: { type: "podcast" | "sermon" }) 
 
       const response = await UPLOAD_EPISODE(formData);
 
-      console.log("Upload response:", response);
-
-      // Reset form on success
-      setPodcastData({
-        title: "",
-        description: "",
-        genre: "",
-        image: null,
-      });
-
-      setEpisodes([
-        {
+      if (response.success) {
+        toast.success(`${type} uploaded successfully!`);
+        // Reset form on success
+        setPodcastData({
           title: "",
           description: "",
-          audioFile: null,
-        },
-      ]);
+          genre: "",
+          image: null,
+        });
+        setEpisodes([
+          {
+            title: "",
+            description: "",
+            audioFile: null,
+          },
+        ]);
+      } else {
+        toast.error(response.message || "Failed to upload. Please try again.");
+      }
     } catch (error) {
       console.error("Error uploading podcast:", error);
+      toast.error("An error occurred while uploading. Please try again.");
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -178,16 +213,15 @@ export default function EpisodeUpload({ type }: { type: "podcast" | "sermon" }) 
                     id="genre"
                     name="genre"
                     value={podcastData.genre}
-                    onChange={handlePodcastChange}
+                    onChange={handleAudioCategoryChange}
                     className="w-full p-2 rounded-md border border-gold-900/20"
                     required>
                     <option value="">Select genre</option>
-                    <option value="Christianity">Christianity</option>
-                    <option value="Bible Study">Bible Study</option>
-                    <option value="Worship">Worship</option>
-                    <option value="Theology">Theology</option>
-                    <option value="Testimonies">Testimonies</option>
-                    <option value="Sermons">Sermons</option>
+                    {audioCategories.map((category) => (
+                      <option key={category._id} value={category._id}>
+                        {category.title}
+                      </option>
+                    ))}
                   </select>
                 </div>
               </div>
@@ -313,11 +347,19 @@ export default function EpisodeUpload({ type }: { type: "podcast" | "sermon" }) 
 
             {/* Sticky footer buttons */}
             <div className="sticky bottom-0 pt-4">
-              <button
+              <Button
                 type="submit"
-                className="w-full bg-gold-900 text-white py-3 rounded-md hover:bg-gold-900/90 font-medium font-Montserrat text-lg">
-                Upload {type}
-              </button>
+                className="w-full bg-gold-900 text-white py-3 rounded-md hover:bg-gold-900/90 font-medium font-Montserrat text-lg"
+                disabled={isLoading}>
+                {isLoading ? (
+                  <>
+                    <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+                    Uploading...
+                  </>
+                ) : (
+                  `Upload ${type}`
+                )}
+              </Button>
             </div>
           </div>
         </form>

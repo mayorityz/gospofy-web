@@ -9,6 +9,8 @@ import UserLogin from "./views/web/UserLogin.tsx";
 import ForgotPassword from "./views/web/ForgotPassword.tsx";
 import CreateUserAccount from "./views/web/CreateUserAccount.tsx";
 import Otp from "./views/web/Otp.tsx";
+import { Toaster } from "@/components/ui/sonner";
+import AdminLogin from "./views/admin/auth/AdminLogin.tsx";
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
@@ -16,6 +18,7 @@ createRoot(document.getElementById("root")!).render(
       <Routes>
         <Route path="/" element={<Landing />} />
         <Route path="/login" element={<UserLogin />} />
+        <Route path="/admin-login" element={<AdminLogin />} />
         <Route path="/create-account" element={<CreateUserAccount />} />
         <Route path="/otp" element={<Otp />} />
         <Route path="/forgot-password" element={<ForgotPassword />} />
@@ -23,5 +26,6 @@ createRoot(document.getElementById("root")!).render(
         <Route path="/user/*" element={<UserRouter />} />
       </Routes>
     </BrowserRouter>
+    <Toaster />
   </StrictMode>
 );

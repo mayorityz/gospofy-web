@@ -1,29 +1,8 @@
 import { useState } from "react";
 import axios from "axios";
-import {
-  Music2,
-  Clock,
-  Calendar,
-  BarChart2,
-  CheckCircle2,
-  XCircle,
-  PauseCircle,
-  Filter,
-  Search,
-  MoreHorizontal,
-  Upload,
-  Plus,
-} from "lucide-react";
+import { Filter, Search, Music2, BarChart2, Clock, Calendar, Plus, Upload } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -40,19 +19,9 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import EpisodeUpload from "@/components/EpisodeUpload";
-
-interface Song {
-  id: string;
-  title: string;
-  genre: string;
-  duration: string;
-  uploadDate: string;
-  status: "pending" | "approved" | "rejected" | "suspended";
-  plays: number;
-  likes: number;
-  adminFeedback?: string;
-  rejectionReason?: string;
-}
+import { useMedia, Song } from "@/hooks/useMedia";
+import { EmptyState } from "@/components/EmptyState";
+import { SongCard } from "@/components/SongCard";
 
 interface SongUpload {
   title: string;
@@ -60,134 +29,6 @@ interface SongUpload {
   audioFile: File | null;
   coverArt: File | null;
 }
-
-const mockSongs: Song[] = [
-  {
-    id: "1",
-    title: "Amazing Grace",
-    genre: "Gospel",
-    duration: "4:35",
-    uploadDate: "2024-03-15",
-    status: "approved",
-    plays: 1234,
-    likes: 89,
-  },
-  {
-    id: "2",
-    title: "How Great is Our God",
-    genre: "Worship",
-    duration: "5:20",
-    uploadDate: "2024-03-14",
-    status: "pending",
-    plays: 0,
-    likes: 0,
-  },
-  {
-    id: "3",
-    title: "In Christ Alone",
-    genre: "Contemporary",
-    duration: "4:15",
-    uploadDate: "2024-03-13",
-    status: "rejected",
-    plays: 0,
-    likes: 0,
-    rejectionReason: "Audio quality does not meet our standards. Please remaster the track.",
-  },
-  {
-    id: "4",
-    title: "Blessed Assurance",
-    genre: "Traditional",
-    duration: "3:45",
-    uploadDate: "2024-03-12",
-    status: "suspended",
-    plays: 567,
-    likes: 45,
-    adminFeedback: "Copyright claim received. Please provide documentation.",
-  },
-];
-
-const songStats = {
-  total: 15,
-  approved: 8,
-  pending: 4,
-  rejected: 2,
-  suspended: 1,
-  totalPlays: 12345,
-  monthlyPlays: 2456,
-  averageApprovalTime: "2 days",
-};
-
-const SongDetailsDialog = ({ song }: { song: Song }) => {
-  return (
-    <DialogContent className="sm:max-w-[600px]">
-      <DialogHeader>
-        <DialogTitle>{song.title}</DialogTitle>
-        <DialogDescription>Song details and metrics</DialogDescription>
-      </DialogHeader>
-      <div className="grid gap-6">
-        {/* Status and Basic Info */}
-        <div className="grid grid-cols-2 gap-4">
-          <div className="space-y-1">
-            <p className="text-sm text-gray-400">Status</p>
-            <div className="flex items-center gap-2">
-              {song.status === "approved" && <CheckCircle2 className="w-4 h-4 text-green-500" />}
-              {song.status === "pending" && <Clock className="w-4 h-4 text-yellow-500" />}
-              {song.status === "rejected" && <XCircle className="w-4 h-4 text-red-500" />}
-              {song.status === "suspended" && <PauseCircle className="w-4 h-4 text-orange-500" />}
-              <span
-                className={`capitalize ${
-                  song.status === "approved"
-                    ? "text-green-500"
-                    : song.status === "pending"
-                    ? "text-yellow-500"
-                    : song.status === "rejected"
-                    ? "text-red-500"
-                    : "text-orange-500"
-                }`}>
-                {song.status}
-              </span>
-            </div>
-          </div>
-          <div className="space-y-1">
-            <p className="text-sm text-gray-400">Genre</p>
-            <p className="text-white">{song.genre}</p>
-          </div>
-        </div>
-
-        {/* Metrics */}
-        <div className="grid grid-cols-3 gap-4">
-          <div className="bg-[#1A1A1A] p-4 rounded-lg">
-            <p className="text-sm text-gray-400">Duration</p>
-            <p className="text-xl font-semibold text-white mt-1">{song.duration}</p>
-          </div>
-          <div className="bg-[#1A1A1A] p-4 rounded-lg">
-            <p className="text-sm text-gray-400">Total Plays</p>
-            <p className="text-xl font-semibold text-white mt-1">{song.plays}</p>
-          </div>
-          <div className="bg-[#1A1A1A] p-4 rounded-lg">
-            <p className="text-sm text-gray-400">Likes</p>
-            <p className="text-xl font-semibold text-white mt-1">{song.likes}</p>
-          </div>
-        </div>
-
-        {/* Admin Feedback or Rejection Reason */}
-        {(song.adminFeedback || song.rejectionReason) && (
-          <div className="bg-[#1A1A1A] p-4 rounded-lg">
-            <p className="text-sm text-gray-400 mb-2">
-              {song.status === "rejected" ? "Rejection Reason" : "Admin Feedback"}
-            </p>
-            <p className="text-white">{song.rejectionReason || song.adminFeedback}</p>
-          </div>
-        )}
-
-        {/* Upload Info */}
-        <div className="text-sm text-gray-400">
-          Uploaded on {new Date(song.uploadDate).toLocaleDateString()}
-        </div>
-      </div>
-    </DialogContent>
-  );
-};
 
 const UploadSongDialog = () => {
   const [songData, setSongData] = useState<SongUpload>({
@@ -347,11 +188,30 @@ export const Songs = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState<Song["status"] | "all">("all");
 
-  const filteredSongs = mockSongs.filter((song) => {
-    const matchesSearch = song.title.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesStatus = statusFilter === "all" || song.status === statusFilter;
-    return matchesSearch && matchesStatus;
+  const {
+    data: songs,
+    isLoading,
+    error,
+    stats = {
+      total: 0,
+      approved: 0,
+      pending: 0,
+      totalPlays: 0,
+      monthlyPlays: 0,
+      averageApprovalTime: "0 days",
+    },
+  } = useMedia<Song>({
+    type: "album",
+    statusFilter,
   });
+
+  if (isLoading) {
+    return <div className="text-white">Loading...</div>;
+  }
+
+  if (error) {
+    return <div className="text-red-500">Error: {error.message}</div>;
+  }
 
   return (
     <div className="space-y-8">
@@ -371,7 +231,7 @@ export const Songs = () => {
             </DialogTrigger>
             <UploadSongDialog />
           </Dialog>
-          <EpisodeUpload type="podcast" />
+          <EpisodeUpload type="album" />
         </div>
       </div>
 
@@ -381,10 +241,10 @@ export const Songs = () => {
           <div className="flex items-center justify-between">
             <div>
               <p className="text-gray-400 text-sm">Total Songs</p>
-              <p className="text-2xl font-bold text-white mt-2">{songStats.total}</p>
+              <p className="text-2xl font-bold text-white mt-2">{stats.total}</p>
               <div className="flex gap-2 mt-2">
-                <span className="text-xs text-green-500">{songStats.approved} approved</span>
-                <span className="text-xs text-yellow-500">{songStats.pending} pending</span>
+                <span className="text-xs text-green-500">{stats.approved} approved</span>
+                <span className="text-xs text-yellow-500">{stats.pending} pending</span>
               </div>
             </div>
             <div className="h-12 w-12 rounded-xl bg-gold-900/10 flex items-center justify-center">
@@ -397,8 +257,8 @@ export const Songs = () => {
           <div className="flex items-center justify-between">
             <div>
               <p className="text-gray-400 text-sm">Total Plays</p>
-              <p className="text-2xl font-bold text-white mt-2">{songStats.totalPlays}</p>
-              <p className="text-green-500 text-sm mt-2">{songStats.monthlyPlays} this month</p>
+              <p className="text-2xl font-bold text-white mt-2">{stats.totalPlays}</p>
+              <p className="text-green-500 text-sm mt-2">{stats.monthlyPlays} this month</p>
             </div>
             <div className="h-12 w-12 rounded-xl bg-gold-900/10 flex items-center justify-center">
               <BarChart2 className="w-5 h-5 text-gold-900" />
@@ -410,7 +270,7 @@ export const Songs = () => {
           <div className="flex items-center justify-between">
             <div>
               <p className="text-gray-400 text-sm">Review Status</p>
-              <p className="text-2xl font-bold text-white mt-2">{songStats.pending}</p>
+              <p className="text-2xl font-bold text-white mt-2">{stats.pending}</p>
               <p className="text-gray-400 text-sm mt-2">Pending review</p>
             </div>
             <div className="h-12 w-12 rounded-xl bg-gold-900/10 flex items-center justify-center">
@@ -423,7 +283,7 @@ export const Songs = () => {
           <div className="flex items-center justify-between">
             <div>
               <p className="text-gray-400 text-sm">Avg. Approval Time</p>
-              <p className="text-2xl font-bold text-white mt-2">{songStats.averageApprovalTime}</p>
+              <p className="text-2xl font-bold text-white mt-2">{stats.averageApprovalTime}</p>
               <p className="text-gray-400 text-sm mt-2">From submission</p>
             </div>
             <div className="h-12 w-12 rounded-xl bg-gold-900/10 flex items-center justify-center">
@@ -470,79 +330,47 @@ export const Songs = () => {
         </DropdownMenu>
       </div>
 
-      {/* Songs Table */}
-      <div className="rounded-xl border border-gold-900/20 bg-[#1A1A1A] overflow-hidden">
-        <Table>
-          <TableHeader>
-            <TableRow className="border-gold-900/20 hover:bg-transparent">
-              <TableHead className="text-gold-900">Title</TableHead>
-              <TableHead className="text-gold-900">Genre</TableHead>
-              <TableHead className="text-gold-900">Duration</TableHead>
-              <TableHead className="text-gold-900">Status</TableHead>
-              <TableHead className="text-gold-900">Upload Date</TableHead>
-              <TableHead className="text-gold-900">Plays</TableHead>
-              <TableHead className="text-gold-900">Likes</TableHead>
-              <TableHead className="text-gold-900 text-right">Actions</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {filteredSongs.map((song) => (
-              <TableRow key={song.id} className="border-gold-900/20">
-                <TableCell className="font-medium text-white">{song.title}</TableCell>
-                <TableCell className="text-gray-400">{song.genre}</TableCell>
-                <TableCell className="text-gray-400">
-                  <div className="flex items-center gap-1">
-                    <Clock className="h-4 w-4" />
-                    {song.duration}
-                  </div>
-                </TableCell>
-                <TableCell>
-                  <div className="flex items-center gap-2">
-                    {song.status === "approved" && (
-                      <CheckCircle2 className="w-4 h-4 text-green-500" />
-                    )}
-                    {song.status === "pending" && <Clock className="w-4 h-4 text-yellow-500" />}
-                    {song.status === "rejected" && <XCircle className="w-4 h-4 text-red-500" />}
-                    {song.status === "suspended" && (
-                      <PauseCircle className="w-4 h-4 text-orange-500" />
-                    )}
-                    <span
-                      className={`capitalize ${
-                        song.status === "approved"
-                          ? "text-green-500"
-                          : song.status === "pending"
-                          ? "text-yellow-500"
-                          : song.status === "rejected"
-                          ? "text-red-500"
-                          : "text-orange-500"
-                      }`}>
-                      {song.status}
-                    </span>
-                  </div>
-                </TableCell>
-                <TableCell className="text-gray-400">
-                  <div className="flex items-center gap-1">
-                    <Calendar className="h-4 w-4" />
-                    {new Date(song.uploadDate).toLocaleDateString()}
-                  </div>
-                </TableCell>
-                <TableCell className="text-gray-400">{song.plays}</TableCell>
-                <TableCell className="text-gray-400">{song.likes}</TableCell>
-                <TableCell className="text-right">
-                  <Dialog>
-                    <DialogTrigger asChild>
-                      <Button variant="ghost" size="icon">
-                        <MoreHorizontal className="h-4 w-4 text-gray-400" />
-                      </Button>
-                    </DialogTrigger>
-                    <SongDetailsDialog song={song} />
-                  </Dialog>
-                </TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-      </div>
+      {/* Songs Grid */}
+      {songs.length === 0 ? (
+        <div className="rounded-xl border border-gold-900/20 bg-[#1A1A1A] overflow-hidden">
+          <EmptyState
+            icon={Music2}
+            title="No songs found"
+            description={
+              searchQuery
+                ? "Try adjusting your search or filters to find what you're looking for."
+                : "Upload your first song to start sharing your music."
+            }
+            action={
+              !searchQuery
+                ? {
+                    label: "Upload Song",
+                    onClick: () => {
+                      // Trigger the upload dialog
+                      const uploadButton = document.querySelector(
+                        '[data-testid="upload-song-button"]'
+                      ) as HTMLButtonElement;
+                      uploadButton?.click();
+                    },
+                  }
+                : undefined
+            }
+          />
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+          {songs.map((song) => (
+            <SongCard
+              key={song._id}
+              song={song}
+              onActionClick={() => {
+                // Handle song actions
+                console.log("Song actions clicked:", song._id);
+              }}
+            />
+          ))}
+        </div>
+      )}
     </div>
   );
 };

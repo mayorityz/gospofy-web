@@ -1,6 +1,7 @@
 import axios from "axios";
 import LocalStorage, { STORAGE_KEY } from "@/lib/storage";
-const BASEURL = "http://localhost:7890/api";
+const BASEURL = "http://ec2-18-212-59-188.compute-1.amazonaws.com:7890/api";
+// const BASEURL = "http://localhost:7890/api";
 
 export enum REQUEST_TYPE {
   GET = "GET",
@@ -9,17 +10,30 @@ export enum REQUEST_TYPE {
   DELETE = "DELETE",
 }
 
-const REQUEST = async (type: REQUEST_TYPE, url: string, data?: any) => {
+const REQUEST = async (type: REQUEST_TYPE, url: string, data?: any, _token?: string) => {
   try {
+    let token = "";
+    let headers = {};
+
     const storage = new LocalStorage();
-    const token = storage.read(STORAGE_KEY.TOKEN);
+
+    token = storage.read(STORAGE_KEY.TOKEN) || "";
+
+    if (!_token) {
+      headers = {
+        Authorization: `Bearer ${token}`,
+      };
+    } else {
+      headers = {
+        Authorization: `Bearer ${_token}`,
+      };
+    }
+
     const response = await axios({
       method: type,
       url: `${BASEURL}${url}`,
       data,
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
+      headers,
     });
 
     return response.data;

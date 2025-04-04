@@ -1,5 +1,6 @@
 export enum STORAGE_KEY {
   TOKEN = "_t__t__sopfy",
+  ADMINTOKEN = "_at_t_sopfy",
   EMAIL = "email",
 }
 

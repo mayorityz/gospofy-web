@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   Search,
   MoreHorizontal,
@@ -28,109 +28,112 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { ChangeEvent } from "react";
-
-// Mock data - replace with actual API call
-const mockUsers = [
-  {
-    id: 1,
-    name: "John Doe",
-    email: "john@example.com",
-    status: "Active",
-    joinedDate: "2024-03-15",
-    role: "User",
-    lastActive: "2 hours ago",
-    subscription: "Free",
-    location: "New York, USA",
-  },
-  {
-    id: 2,
-    name: "Jane Smith",
-    email: "jane@example.com",
-    status: "Inactive",
-    joinedDate: "2024-03-14",
-    role: "Premium",
-    lastActive: "5 days ago",
-    subscription: "Premium",
-    location: "London, UK",
-  },
-  {
-    id: 3,
-    name: "Michael Johnson",
-    email: "michael@example.com",
-    status: "Active",
-    joinedDate: "2024-02-28",
-    role: "User",
-    lastActive: "Just now",
-    subscription: "Free",
-    location: "Toronto, Canada",
-  },
-  {
-    id: 4,
-    name: "Sarah Williams",
-    email: "sarah@example.com",
-    status: "Active",
-    joinedDate: "2024-01-10",
-    role: "Premium",
-    lastActive: "1 day ago",
-    subscription: "Premium",
-    location: "Sydney, Australia",
-  },
-  {
-    id: 5,
-    name: "David Brown",
-    email: "david@example.com",
-    status: "Inactive",
-    joinedDate: "2023-12-05",
-    role: "User",
-    lastActive: "2 weeks ago",
-    subscription: "Free",
-    location: "Berlin, Germany",
-  },
-];
-
-// User statistics
-const userStats = {
-  totalUsers: 1234,
-  activeUsers: 892,
-  premiumUsers: 456,
-  newUsersThisMonth: 87,
-  growthRate: "+12%",
-  retentionRate: "78%",
-  averageSessionTime: "24 min",
-};
+import { GET_USER_STATS, GET_USERS, IUserStats, IUser } from "@/server/users";
+import { toast } from "sonner";
 
 export const AdminUsers = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState("All");
   const [roleFilter, setRoleFilter] = useState("All");
+  const [isLoading, setIsLoading] = useState(true);
+  const [isLoadingUsers, setIsLoadingUsers] = useState(true);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [limit, setLimit] = useState(10);
+  const [totalUsers, setTotalUsers] = useState(0);
+  const [users, setUsers] = useState<IUser["data"]>([]);
+  const [userStats, setUserStats] = useState<IUserStats["data"]>({
+    totalUsers: {
+      count: 0,
+      monthlyGrowth: 0,
+    },
+    verifiedUsers: {
+      count: 0,
+      percentage: 0,
+    },
+    premiumUsers: {
+      count: 0,
+      percentage: 0,
+    },
+    newUsersThisMonth: {
+      count: 0,
+    },
+  });
+
+  useEffect(() => {
+    const fetchUserStats = async () => {
+      try {
+        setIsLoading(true);
+        const response = await GET_USER_STATS();
+        if (response.success) {
+          setUserStats(response.data);
+        } else {
+          toast.error(response.message || "Failed to fetch user statistics");
+        }
+      } catch (error) {
+        console.error("Error fetching user stats:", error);
+        toast.error("An error occurred while fetching user statistics");
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchUserStats();
+  }, []);
+
+  useEffect(() => {
+    const fetchUsers = async () => {
+      try {
+        setIsLoadingUsers(true);
+        const response = await GET_USERS(currentPage, limit);
+        if (response.success) {
+          setUsers(response.data);
+          setTotalUsers(response.data.length);
+        } else {
+          toast.error(response.message || "Failed to fetch users");
+        }
+      } catch (error) {
+        console.error("Error fetching users:", error);
+        toast.error("An error occurred while fetching users");
+      } finally {
+        setIsLoadingUsers(false);
+      }
+    };
+
+    fetchUsers();
+  }, [currentPage, limit]);
 
   const handleSearch = (e: ChangeEvent<HTMLInputElement>) => {
     setSearchQuery(e.target.value);
   };
 
-  const filteredUsers = mockUsers.filter((user) => {
+  const filteredUsers = users.filter((user) => {
     const matchesSearch =
       user.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
       user.email.toLowerCase().includes(searchQuery.toLowerCase());
 
     const matchesStatus =
-      statusFilter === "All" || user.status === statusFilter;
-    const matchesRole = roleFilter === "All" || user.role === roleFilter;
+      statusFilter === "All" ||
+      (statusFilter === "Active" && user.accountStatus === "active") ||
+      (statusFilter === "Inactive" && user.accountStatus === "suspended");
+
+    const matchesRole =
+      roleFilter === "All" ||
+      (roleFilter === "Premium" && user.isPremiumUser) ||
+      (roleFilter === "User" && !user.isPremiumUser);
 
     return matchesSearch && matchesStatus && matchesRole;
   });
+
+  const totalPages = Math.ceil(totalUsers / limit);
 
   return (
     <div className="flex flex-col h-screen p-8">
       <div className="flex-1 space-y-8">
         {/* Header */}
         <div>
-          <h1 className="text-3xl font-bold text-white font-Montserrat">
-            User Management
-          </h1>
+          <h1 className="text-3xl font-bold text-white font-Montserrat">User Management</h1>
           <p className="text-gray-400 mt-2">
-            Track, analyze, and manage your platform's user base from one
-            central dashboard
+            Track, analyze, and manage your platform's user base from one central dashboard
           </p>
         </div>
 
@@ -142,10 +145,18 @@ export const AdminUsers = () => {
               <div>
                 <p className="text-gray-400 text-sm">Total Users</p>
                 <p className="text-2xl font-bold text-white mt-2">
-                  {userStats.totalUsers}
+                  {isLoading ? (
+                    <div className="h-8 w-16 bg-gold-900/10 animate-pulse rounded" />
+                  ) : (
+                    userStats.totalUsers.count.toLocaleString()
+                  )}
                 </p>
                 <p className="text-green-500 text-sm mt-2">
-                  {userStats.growthRate} from last month
+                  {isLoading ? (
+                    <div className="h-4 w-12 bg-gold-900/10 animate-pulse rounded" />
+                  ) : (
+                    `${userStats.totalUsers.monthlyGrowth}% from last month`
+                  )}
                 </p>
               </div>
               <div className="h-12 w-12 rounded-full bg-gold-900/10 flex items-center justify-center">
@@ -160,10 +171,19 @@ export const AdminUsers = () => {
               <div>
                 <p className="text-gray-400 text-sm">Active Users</p>
                 <p className="text-2xl font-bold text-white mt-2">
-                  {userStats.activeUsers}
+                  {isLoading ? (
+                    <div className="h-8 w-16 bg-gold-900/10 animate-pulse rounded" />
+                  ) : (
+                    userStats.verifiedUsers.count.toLocaleString()
+                  )}
                 </p>
                 <p className="text-gray-400 text-sm mt-2">
-                  Retention: {userStats.retentionRate}
+                  Retention:{" "}
+                  {isLoading ? (
+                    <div className="h-4 w-12 bg-gold-900/10 animate-pulse rounded" />
+                  ) : (
+                    `${userStats.verifiedUsers.percentage}%`
+                  )}
                 </p>
               </div>
               <div className="h-12 w-12 rounded-full bg-gold-900/10 flex items-center justify-center">
@@ -178,13 +198,18 @@ export const AdminUsers = () => {
               <div>
                 <p className="text-gray-400 text-sm">Premium Users</p>
                 <p className="text-2xl font-bold text-white mt-2">
-                  {userStats.premiumUsers}
+                  {isLoading ? (
+                    <div className="h-8 w-16 bg-gold-900/10 animate-pulse rounded" />
+                  ) : (
+                    userStats.premiumUsers.count.toLocaleString()
+                  )}
                 </p>
                 <p className="text-gray-400 text-sm mt-2">
-                  {Math.round(
-                    (userStats.premiumUsers / userStats.totalUsers) * 100
+                  {isLoading ? (
+                    <div className="h-4 w-12 bg-gold-900/10 animate-pulse rounded" />
+                  ) : (
+                    `${userStats.premiumUsers.percentage}% of total users`
                   )}
-                  % of total users
                 </p>
               </div>
               <div className="h-12 w-12 rounded-full bg-gold-900/10 flex items-center justify-center">
@@ -199,10 +224,19 @@ export const AdminUsers = () => {
               <div>
                 <p className="text-gray-400 text-sm">New This Month</p>
                 <p className="text-2xl font-bold text-white mt-2">
-                  {userStats.newUsersThisMonth}
+                  {isLoading ? (
+                    <div className="h-8 w-16 bg-gold-900/10 animate-pulse rounded" />
+                  ) : (
+                    userStats.newUsersThisMonth.count.toLocaleString()
+                  )}
                 </p>
                 <p className="text-gray-400 text-sm mt-2">
-                  Avg. session: {userStats.averageSessionTime}
+                  Avg. session:{" "}
+                  {isLoading ? (
+                    <div className="h-4 w-12 bg-gold-900/10 animate-pulse rounded" />
+                  ) : (
+                    "0 min"
+                  )}
                 </p>
               </div>
               <div className="h-12 w-12 rounded-full bg-gold-900/10 flex items-center justify-center">
@@ -214,29 +248,27 @@ export const AdminUsers = () => {
 
         {/* User Insights */}
         <div className="bg-[#1A1A1A] p-6 rounded-xl border border-gold-900/20">
-          <h2 className="text-xl font-semibold text-white mb-4">
-            User Insights
-          </h2>
+          <h2 className="text-xl font-semibold text-white mb-4">User Insights</h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             <div className="space-y-2">
               <h3 className="text-gold-900 font-medium">Engagement</h3>
               <p className="text-gray-400 text-sm">
-                User engagement is up 15% compared to last month. Most active
-                times are between 6-9 PM on weekdays.
+                User engagement is up 15% compared to last month. Most active times are between 6-9
+                PM on weekdays.
               </p>
             </div>
             <div className="space-y-2">
               <h3 className="text-gold-900 font-medium">Retention</h3>
               <p className="text-gray-400 text-sm">
-                78% of users return within a week. Premium users show 92%
-                retention rate compared to 65% for free users.
+                78% of users return within a week. Premium users show 92% retention rate compared to
+                65% for free users.
               </p>
             </div>
             <div className="space-y-2">
               <h3 className="text-gold-900 font-medium">Recommendations</h3>
               <p className="text-gray-400 text-sm">
-                Consider running a re-engagement campaign for inactive users.
-                There are 342 users who haven't logged in for over 30 days.
+                Consider running a re-engagement campaign for inactive users. There are 342 users
+                who haven't logged in for over 30 days.
               </p>
             </div>
           </div>
@@ -251,10 +283,7 @@ export const AdminUsers = () => {
             </p>
           </div>
           <div className="flex gap-3">
-            <Button
-              variant="outline"
-              className="border-gold-900/20 text-gold-900"
-            >
+            <Button variant="outline" className="border-gold-900/20 text-gold-900">
               <Download className="mr-2 h-4 w-4" />
               Export
             </Button>
@@ -286,9 +315,7 @@ export const AdminUsers = () => {
               </DropdownMenuTrigger>
               <DropdownMenuContent>
                 <DropdownMenuLabel>Filter by Status</DropdownMenuLabel>
-                <DropdownMenuItem onClick={() => setStatusFilter("All")}>
-                  All
-                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => setStatusFilter("All")}>All</DropdownMenuItem>
                 <DropdownMenuItem onClick={() => setStatusFilter("Active")}>
                   Active
                 </DropdownMenuItem>
@@ -307,9 +334,7 @@ export const AdminUsers = () => {
               </DropdownMenuTrigger>
               <DropdownMenuContent>
                 <DropdownMenuLabel>Filter by Role</DropdownMenuLabel>
-                <DropdownMenuItem onClick={() => setRoleFilter("All")}>
-                  All Roles
-                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => setRoleFilter("All")}>All Roles</DropdownMenuItem>
                 <DropdownMenuItem onClick={() => setRoleFilter("User")}>
                   Regular Users
                 </DropdownMenuItem>
@@ -319,14 +344,29 @@ export const AdminUsers = () => {
               </DropdownMenuContent>
             </DropdownMenu>
 
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline" className="border-gold-900/20">
+                  <ChevronDown className="mr-2 h-4 w-4" />
+                  Show: {limit}
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent>
+                <DropdownMenuLabel>Items per page</DropdownMenuLabel>
+                <DropdownMenuItem onClick={() => setLimit(10)}>10</DropdownMenuItem>
+                <DropdownMenuItem onClick={() => setLimit(20)}>20</DropdownMenuItem>
+                <DropdownMenuItem onClick={() => setLimit(50)}>50</DropdownMenuItem>
+                <DropdownMenuItem onClick={() => setLimit(100)}>100</DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+
             <Button
               variant="ghost"
               onClick={() => {
                 setSearchQuery("");
                 setStatusFilter("All");
                 setRoleFilter("All");
-              }}
-            >
+              }}>
               <RefreshCw className="h-4 w-4" />
             </Button>
           </div>
@@ -344,52 +384,45 @@ export const AdminUsers = () => {
                 <TableHead className="text-gold-900">Location</TableHead>
                 <TableHead className="text-gold-900">Last Active</TableHead>
                 <TableHead className="text-gold-900">Joined Date</TableHead>
-                <TableHead className="text-gold-900 text-right">
-                  Actions
-                </TableHead>
+                <TableHead className="text-gold-900 text-right">Actions</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
-              {filteredUsers.length > 0 ? (
+              {isLoadingUsers ? (
+                <TableRow>
+                  <TableCell colSpan={8} className="text-center py-8">
+                    <div className="flex justify-center">
+                      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gold-900"></div>
+                    </div>
+                  </TableCell>
+                </TableRow>
+              ) : filteredUsers.length > 0 ? (
                 filteredUsers.map((user) => (
-                  <TableRow key={user.id} className="border-gold-900/20">
-                    <TableCell className="font-medium text-white">
-                      {user.name}
-                    </TableCell>
-                    <TableCell className="text-gray-400">
-                      {user.email}
-                    </TableCell>
+                  <TableRow key={user._id} className="border-gold-900/20">
+                    <TableCell className="font-medium text-white">{user.name}</TableCell>
+                    <TableCell className="text-gray-400">{user.email}</TableCell>
                     <TableCell>
                       <span
                         className={`px-2 py-1 rounded-full text-xs ${
-                          user.status === "Active"
+                          user.accountStatus === "active"
                             ? "bg-green-500/10 text-green-500"
                             : "bg-red-500/10 text-red-500"
-                        }`}
-                      >
-                        {user.status}
+                        }`}>
+                        {user.accountStatus === "active" ? "Active" : "Inactive"}
                       </span>
                     </TableCell>
                     <TableCell>
                       <span
                         className={`px-2 py-1 rounded-full text-xs ${
-                          user.subscription === "Premium"
+                          user.isPremiumUser
                             ? "bg-gold-900/10 text-gold-900"
                             : "bg-gray-500/10 text-gray-400"
-                        }`}
-                      >
-                        {user.subscription}
+                        }`}>
+                        {user.isPremiumUser ? "Premium" : "Free"}
                       </span>
                     </TableCell>
-                    <TableCell className="text-gray-400">
-                      {user.location}
-                    </TableCell>
-                    <TableCell className="text-gray-400">
-                      {user.lastActive}
-                    </TableCell>
-                    <TableCell className="text-gray-400">
-                      {user.joinedDate}
-                    </TableCell>
+                    <TableCell className="text-gray-400">{user.createdAt}</TableCell>
+                    <TableCell className="text-gray-400">{user.createdAt}</TableCell>
                     <TableCell className="text-right">
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild>
@@ -402,9 +435,7 @@ export const AdminUsers = () => {
                           <DropdownMenuItem>Edit User</DropdownMenuItem>
                           <DropdownMenuItem>Send Message</DropdownMenuItem>
                           <DropdownMenuItem>View Activity</DropdownMenuItem>
-                          <DropdownMenuItem className="text-red-500">
-                            Suspend User
-                          </DropdownMenuItem>
+                          <DropdownMenuItem className="text-red-500">Suspend User</DropdownMenuItem>
                         </DropdownMenuContent>
                       </DropdownMenu>
                     </TableCell>
@@ -412,10 +443,7 @@ export const AdminUsers = () => {
                 ))
               ) : (
                 <TableRow>
-                  <TableCell
-                    colSpan={8}
-                    className="text-center py-8 text-gray-400"
-                  >
+                  <TableCell colSpan={8} className="text-center py-8 text-gray-400">
                     No users found matching your search criteria.
                     <Button
                       variant="link"
@@ -424,8 +452,7 @@ export const AdminUsers = () => {
                         setSearchQuery("");
                         setStatusFilter("All");
                         setRoleFilter("All");
-                      }}
-                    >
+                      }}>
                       Reset filters
                     </Button>
                   </TableCell>
@@ -438,26 +465,35 @@ export const AdminUsers = () => {
         {/* Pagination and Results Summary */}
         <div className="flex justify-between items-center text-sm text-gray-400">
           <div>
-            Showing {filteredUsers.length} of {mockUsers.length} users
+            Showing {filteredUsers.length} of {totalUsers} users
           </div>
           <div className="flex gap-2">
-            <Button variant="outline" size="sm" className="border-gold-900/20">
-              Previous
-            </Button>
             <Button
               variant="outline"
               size="sm"
-              className="border-gold-900/20 bg-gold-900/10 text-gold-900"
-            >
-              1
+              className="border-gold-900/20"
+              onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
+              disabled={currentPage === 1}>
+              Previous
             </Button>
-            <Button variant="outline" size="sm" className="border-gold-900/20">
-              2
-            </Button>
-            <Button variant="outline" size="sm" className="border-gold-900/20">
-              3
-            </Button>
-            <Button variant="outline" size="sm" className="border-gold-900/20">
+            {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+              <Button
+                key={page}
+                variant="outline"
+                size="sm"
+                className={`border-gold-900/20 ${
+                  currentPage === page ? "bg-gold-900/10 text-gold-900" : ""
+                }`}
+                onClick={() => setCurrentPage(page)}>
+                {page}
+              </Button>
+            ))}
+            <Button
+              variant="outline"
+              size="sm"
+              className="border-gold-900/20"
+              onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
+              disabled={currentPage === totalPages}>
               Next
             </Button>
           </div>
