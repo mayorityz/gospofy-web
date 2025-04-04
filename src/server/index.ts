@@ -1,6 +1,7 @@
 import axios from "axios";
 import LocalStorage, { STORAGE_KEY } from "@/lib/storage";
-const BASEURL = "http://ec2-18-212-59-188.compute-1.amazonaws.com:7890/api";
+// const BASEURL = "http://ec2-18-212-59-188.compute-1.amazonaws.com:7890/api";
+const BASEURL = "https://api.gospofy.com/api";
 // const BASEURL = "http://localhost:7890/api";
 
 export enum REQUEST_TYPE {
