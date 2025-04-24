@@ -85,7 +85,7 @@ export function useMedia<T extends Media>({
         // Fetch media data
         const response = await GET_USERS_UPLOADED_MEDIA(type, page, limit);
         if (response.success) {
-          setData(response.data);
+          setData(response.data.data);
           setStats(
             response.stats || {
               total: 0,

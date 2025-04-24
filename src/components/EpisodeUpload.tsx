@@ -22,6 +22,8 @@ interface Episode {
   title: string;
   description: string;
   audioFile: File | null;
+  genre: string;
+  lyrics: string;
 }
 
 export default function EpisodeUpload({ type }: { type: "podcast" | "sermon" | "album" }) {
@@ -31,7 +33,7 @@ export default function EpisodeUpload({ type }: { type: "podcast" | "sermon" | "
   const getAudioCategories = async () => {
     const response = await GET_LIST_AUDIO_CATEGORIES();
     if (response.success) {
-      setAudioCategories(response.data);
+      setAudioCategories(response.data.data);
     }
   };
 
@@ -125,6 +127,8 @@ export default function EpisodeUpload({ type }: { type: "podcast" | "sermon" | "
       const episodesMetadata = episodes.map((episode) => ({
         title: episode.title,
         description: episode.description,
+        genre: episode.genre,
+        lyrics: episode.lyrics,
       }));
       formData.append("episodesMetadata", JSON.stringify(episodesMetadata));
 
@@ -260,14 +264,18 @@ export default function EpisodeUpload({ type }: { type: "podcast" | "sermon" | "
             </div>
 
             <div className="space-y-4">
-              <h2 className="text-xl font-semibold text-gold-900">Episodes</h2>
+              <h2 className="text-xl font-semibold text-gold-900">
+                {type === "album" ? "Tracks" : "Episodes"}
+              </h2>
               <div className="max-h-[40vh] overflow-y-auto pr-2">
                 {episodes.map((episode, index) => (
                   <div
                     key={index}
                     className="p-4 border border-gold-900/20 rounded-lg space-y-4 mb-10">
                     <div className="flex justify-between items-center">
-                      <h3 className="font-medium">Episode {index + 1}</h3>
+                      <h3 className="font-medium">
+                        {type === "album" ? "Tracks" : "Episodes"} {index + 1}
+                      </h3>
 
                       <button
                         type="button"
@@ -280,7 +288,9 @@ export default function EpisodeUpload({ type }: { type: "podcast" | "sermon" | "
 
                     <div className="space-y-4">
                       <div className="space-y-2">
-                        <label className="text-sm font-medium text-[#000]">Episode Title *</label>
+                        <label className="text-sm font-medium text-[#000]">
+                          {type === "album" ? "Tracks" : "Episodes"} Title *
+                        </label>
                         <input
                           type="text"
                           value={episode.title}
@@ -292,7 +302,7 @@ export default function EpisodeUpload({ type }: { type: "podcast" | "sermon" | "
 
                       <div className="space-y-2">
                         <label className="text-sm font-medium text-[#000]">
-                          Episode Description
+                          {type === "album" ? "Tracks" : "Episodes"} Description
                         </label>
                         <textarea
                           value={episode.description}
@@ -301,6 +311,28 @@ export default function EpisodeUpload({ type }: { type: "podcast" | "sermon" | "
                           }
                           rows={2}
                           className="w-full p-2 rounded-md border border-gold-900/20"></textarea>
+                      </div>
+
+                      <div className="space-y-2">
+                        <label className="text-sm font-medium text-[#000]">Genre</label>
+                        <select
+                          className="w-full p-2 rounded-md border border-gold-900/20"
+                          onChange={(e) => handleEpisodeChange(index, "genre", e.target.value)}>
+                          <option value="">Select genre</option>
+                          {audioCategories.map((category) => (
+                            <option key={category._id} value={category._id}>
+                              {category.title}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+
+                      <div className="space-y-2">
+                        <label className="text-sm font-medium text-[#000]">Lyrics</label>
+                        <textarea
+                          className="w-full p-2 rounded-md border border-gold-900/20"
+                          onChange={(e) => handleEpisodeChange(index, "lyrics", e.target.value)}
+                          rows={4}></textarea>
                       </div>
 
                       <div className="space-y-2">

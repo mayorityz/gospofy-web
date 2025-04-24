@@ -1,6 +1,5 @@
 import { useState } from "react";
-import axios from "axios";
-import { Filter, Search, Music2, BarChart2, Clock, Calendar, Plus, Upload } from "lucide-react";
+import { Filter, Search, Music2, BarChart2, Clock, Calendar } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -10,179 +9,11 @@ import {
   DropdownMenuLabel,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
+
 import EpisodeUpload from "@/components/EpisodeUpload";
 import { useMedia, Song } from "@/hooks/useMedia";
 import { EmptyState } from "@/components/EmptyState";
 import { SongCard } from "@/components/SongCard";
-
-interface SongUpload {
-  title: string;
-  genre: string;
-  audioFile: File | null;
-  coverArt: File | null;
-}
-
-const UploadSongDialog = () => {
-  const [songData, setSongData] = useState<SongUpload>({
-    title: "",
-    genre: "",
-    audioFile: null,
-    coverArt: null,
-  });
-
-  const [isUploading, setIsUploading] = useState(false);
-
-  const handleFileChange = (
-    event: React.ChangeEvent<HTMLInputElement>,
-    type: "audio" | "cover"
-  ) => {
-    const file = event.target.files?.[0] || null;
-    setSongData((prev) => ({
-      ...prev,
-      [type === "audio" ? "audioFile" : "coverArt"]: file,
-    }));
-  };
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    try {
-      e.preventDefault();
-      setIsUploading(true);
-
-      const formData = new FormData();
-      formData.append("title", songData.title);
-      formData.append("genre", songData.genre);
-      formData.append("audioFile", songData.audioFile as Blob);
-      formData.append("coverArt", songData.coverArt as Blob);
-
-      console.log(formData);
-
-      const response = await axios.post("http://localhost:7890/api/media/upload", formData, {
-        headers: {
-          "Content-Type": "multipart/form-data",
-        },
-      });
-      console.log(response);
-      setIsUploading(false);
-
-      // Reset form
-      setSongData({
-        title: "",
-        genre: "",
-        audioFile: null,
-        coverArt: null,
-      });
-    } catch (error) {
-      console.error("Error uploading song:", error);
-      // toast.error("Failed to upload song. Please try again.");
-    } finally {
-      setIsUploading(false);
-    }
-  };
-
-  return (
-    <DialogContent className="sm:max-w-[500px]">
-      <DialogHeader>
-        <DialogTitle>Upload New Song</DialogTitle>
-        <DialogDescription>
-          Fill in the details below to upload your song. Required fields are marked with *
-        </DialogDescription>
-      </DialogHeader>
-      <form onSubmit={handleSubmit} className="space-y-6" encType="multipart/form-data">
-        <div className="space-y-4">
-          <div className="space-y-2">
-            <label htmlFor="title" className="text-sm font-medium text-gray-200">
-              Title *
-            </label>
-            <Input
-              id="title"
-              placeholder="Enter song title"
-              value={songData.title}
-              onChange={(e) => setSongData((prev) => ({ ...prev, title: e.target.value }))}
-              required
-              className="bg-[#1A1A1A] border-gold-900/20 text-white"
-            />
-          </div>
-
-          <div className="space-y-2">
-            <label htmlFor="genre" className="text-sm font-medium text-gray-200">
-              Genre *
-            </label>
-            <Input
-              id="genre"
-              placeholder="e.g., Gospel, Worship, Contemporary"
-              value={songData.genre}
-              onChange={(e) => setSongData((prev) => ({ ...prev, genre: e.target.value }))}
-              required
-              className="bg-[#1A1A1A] border-gold-900/20 text-white"
-            />
-          </div>
-
-          <div className="space-y-2">
-            <label className="text-sm font-medium text-gray-200">Audio File *</label>
-            <div className="flex items-center gap-4">
-              <Input
-                type="file"
-                accept="audio/*"
-                onChange={(e) => handleFileChange(e, "audio")}
-                required
-                className="bg-[#1A1A1A] border-gold-900/20 text-white file:text-gold-900 file:bg-gold-900/10"
-              />
-              {songData.audioFile && (
-                <span className="text-sm text-gray-400">{songData.audioFile.name}</span>
-              )}
-            </div>
-          </div>
-
-          <div className="space-y-2">
-            <label className="text-sm font-medium text-gray-200">Cover Art</label>
-            <div className="flex items-center gap-4">
-              <Input
-                type="file"
-                accept="image/*"
-                onChange={(e) => handleFileChange(e, "cover")}
-                className="bg-[#1A1A1A] border-gold-900/20 text-white file:text-gold-900 file:bg-gold-900/10"
-              />
-              {songData.coverArt && (
-                <span className="text-sm text-gray-400">{songData.coverArt.name}</span>
-              )}
-            </div>
-          </div>
-        </div>
-
-        <div className="flex justify-end gap-4">
-          <DialogTrigger asChild>
-            <Button variant="outline" className="border-gold-900/20">
-              Cancel
-            </Button>
-          </DialogTrigger>
-          <Button
-            type="submit"
-            disabled={isUploading}
-            className="bg-gold-900 text-white hover:bg-gold-900/90">
-            {isUploading ? (
-              <>
-                <span className="animate-pulse">Uploading...</span>
-              </>
-            ) : (
-              <>
-                <Upload className="w-4 h-4 mr-2" />
-                Upload Song
-              </>
-            )}
-          </Button>
-        </div>
-      </form>
-    </DialogContent>
-  );
-};
 
 export const Songs = () => {
   const [searchQuery, setSearchQuery] = useState("");
@@ -222,7 +53,7 @@ export const Songs = () => {
           <p className="text-gray-400 mt-2">Manage and monitor your music catalog</p>
         </div>
         <div className="flex gap-4">
-          <Dialog>
+          {/* <Dialog>
             <DialogTrigger asChild>
               <Button className="bg-gold-900 text-white hover:bg-gold-900/90">
                 <Plus className="w-4 h-4 mr-2" />
@@ -230,7 +61,7 @@ export const Songs = () => {
               </Button>
             </DialogTrigger>
             <UploadSongDialog />
-          </Dialog>
+          </Dialog> */}
           <EpisodeUpload type="album" />
         </div>
       </div>
