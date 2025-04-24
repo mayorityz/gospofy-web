@@ -53,6 +53,8 @@ export default function EpisodeUpload({ type }: { type: "podcast" | "sermon" | "
       title: "",
       description: "",
       audioFile: null as File | null,
+      genre: "",
+      lyrics: "",
     },
   ]);
 
@@ -94,7 +96,10 @@ export default function EpisodeUpload({ type }: { type: "podcast" | "sermon" | "
 
   const handleAddEpisode = (e: React.MouseEvent<HTMLButtonElement>) => {
     e.preventDefault();
-    setEpisodes([...episodes, { title: "", description: "", audioFile: null }]);
+    setEpisodes([
+      ...episodes,
+      { title: "", description: "", audioFile: null, genre: "", lyrics: "" },
+    ]);
   };
 
   const handleRemoveEpisode = (e: React.MouseEvent<HTMLButtonElement>, index: number) => {
@@ -155,6 +160,8 @@ export default function EpisodeUpload({ type }: { type: "podcast" | "sermon" | "
             title: "",
             description: "",
             audioFile: null,
+            genre: "",
+            lyrics: "",
           },
         ]);
       } else {
