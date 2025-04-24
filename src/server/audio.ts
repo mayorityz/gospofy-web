@@ -14,6 +14,7 @@ const AUDIO_ROUTES = {
   GET_USERS_UPLOADED_MEDIA: "/media/user-media",
   GET_MEDIA_STATUSES: "/media/media-statuses",
   GET_MEDIA_BY_STATUS: "/media/media-by-admin-status",
+  GET_MEDIA_STATS: "/media/media-stats",
 };
 
 interface IResponse {
@@ -48,6 +49,44 @@ export interface IMediaByStatus extends IResponse {
     total: number;
     page: number;
     limit: number;
+  };
+}
+
+export interface IRecentMediaUploads extends IResponse {
+  data: {
+    data: {
+      _id: string;
+      title: string;
+      genre: {
+        _id: string;
+        title: string;
+      };
+      artist: {
+        _id: string;
+        name: string;
+      };
+      image: string;
+      description: string;
+      status: string;
+      createdAt: string;
+      adminStatus?: string;
+      likes?: any[];
+      plays?: any[];
+      comments?: any[];
+    }[];
+    totalCount: number;
+    currentPage: string;
+    totalPages: number;
+  };
+}
+
+export interface IMediaStats extends IResponse {
+  data: {
+    totalMedia: number;
+    totalAlbums: number;
+    totalPodcasts: number;
+    totalSermons: number;
+    newMediaThisMonthCount: number;
   };
 }
 
@@ -126,6 +165,11 @@ const GET_USERS_UPLOADED_MEDIA = async (type: string, page: number, limit: numbe
   return response;
 };
 
+const GET_MEDIA_STATS = async (): Promise<IMediaStats> => {
+  const response = await REQUEST(REQUEST_TYPE.GET, AUDIO_ROUTES.GET_MEDIA_STATS);
+  return response;
+};
+
 export {
   UPLOAD_EPISODE,
   UPLOAD_AUDIO,
@@ -140,4 +184,5 @@ export {
   GET_USERS_UPLOADED_MEDIA,
   GET_MEDIA_STATUSES,
   GET_MEDIA_BY_STATUS,
+  GET_MEDIA_STATS,
 };

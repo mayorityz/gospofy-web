@@ -2,6 +2,13 @@ import { Button } from "@/components/ui/button";
 import { Upload, Music2, Radio, Church, BarChart2, Clock } from "lucide-react";
 import { motion } from "framer-motion";
 import { Link } from "react-router";
+import {
+  GET_MEDIA_STATS,
+  GET_USERS_UPLOADED_MEDIA,
+  IMediaStats,
+  IRecentMediaUploads,
+} from "@/server/audio";
+import { useEffect, useState } from "react";
 
 interface QuickAction {
   title: string;
@@ -37,40 +44,52 @@ const quickActions: QuickAction[] = [
   // },
 ];
 
-const recentUploads = [
-  {
-    title: "Amazing Grace",
-    type: "Song",
-    uploadDate: "2 hours ago",
-    status: "Processing",
-    plays: 0,
-  },
-  {
-    title: "Walking in Faith",
-    type: "Sermon",
-    uploadDate: "3 hours ago",
-    status: "Live",
-    plays: 124,
-  },
-  {
-    title: "Modern Christianity",
-    type: "Podcast",
-    uploadDate: "5 hours ago",
-    status: "Live",
-    plays: 45,
-  },
-];
-
-const contentStats = {
-  totalSongs: 12,
-  totalSermons: 5,
-  totalPodcasts: 3,
-  totalPlays: 1234,
-  monthlyPlays: 456,
-  uploadedThisMonth: 8,
-};
+// const contentStats = {
+//   totalSongs: 12,
+//   totalSermons: 5,
+//   totalPodcasts: 3,
+//   totalPlays: 1234,
+//   monthlyPlays: 456,
+//   uploadedThisMonth: 8,
+// };
 
 const Home = () => {
+  const [isLoading, setIsLoading] = useState(true);
+  const [mediaStats, setMediaStats] = useState<IMediaStats["data"]>({
+    totalMedia: 0,
+    totalAlbums: 0,
+    totalPodcasts: 0,
+    totalSermons: 0,
+    newMediaThisMonthCount: 0,
+  });
+  const [recentMediaUploads, setRecentMediaUploads] = useState<IRecentMediaUploads["data"]["data"]>(
+    []
+  );
+
+  const getMediaStats = async () => {
+    const response = await GET_MEDIA_STATS();
+    if (response.success) {
+      setMediaStats(response.data);
+    }
+    setIsLoading(false);
+  };
+
+  const getRecentMediaUploads = async () => {
+    const response = await GET_USERS_UPLOADED_MEDIA("", 1, 4);
+    if (response.success) {
+      setRecentMediaUploads(response.data.data);
+    }
+  };
+
+  useEffect(() => {
+    getMediaStats();
+    getRecentMediaUploads();
+  }, []);
+
+  if (isLoading) {
+    return <div>Loading...</div>;
+  }
+
   return (
     <div className="space-y-8">
       {/* Welcome Section */}
@@ -91,18 +110,14 @@ const Home = () => {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-gray-400 text-sm">Total Content</p>
-                <p className="text-2xl font-bold text-white mt-2">
-                  {contentStats.totalSongs + contentStats.totalSermons + contentStats.totalPodcasts}
-                </p>
+                <p className="text-2xl font-bold text-white mt-2">{mediaStats.totalMedia}</p>
                 <div className="flex gap-2 mt-2">
-                  <span className="text-xs text-gray-400">Songs: {contentStats.totalSongs}</span>
+                  <span className="text-xs text-gray-400">Albums: {mediaStats.totalAlbums}</span>
+                  <span className="text-xs text-gray-400">•</span>
+                  <span className="text-xs text-gray-400">Sermons: {mediaStats.totalSermons}</span>
                   <span className="text-xs text-gray-400">•</span>
                   <span className="text-xs text-gray-400">
-                    Sermons: {contentStats.totalSermons}
-                  </span>
-                  <span className="text-xs text-gray-400">•</span>
-                  <span className="text-xs text-gray-400">
-                    Podcasts: {contentStats.totalPodcasts}
+                    Podcasts: {mediaStats.totalPodcasts}
                   </span>
                 </div>
               </div>
@@ -116,10 +131,8 @@ const Home = () => {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-gray-400 text-sm">Total Plays</p>
-                <p className="text-2xl font-bold text-white mt-2">{contentStats.totalPlays}</p>
-                <p className="text-green-500 text-sm mt-2">
-                  {contentStats.monthlyPlays} plays this month
-                </p>
+                <p className="text-2xl font-bold text-white mt-2">{0}</p>
+                <p className="text-green-500 text-sm mt-2">{0} plays this month</p>
               </div>
               <div className="h-12 w-12 rounded-xl bg-gold-900/10 flex items-center justify-center">
                 <BarChart2 className="w-5 h-5 text-gold-900" />
@@ -132,7 +145,7 @@ const Home = () => {
               <div>
                 <p className="text-gray-400 text-sm">New This Month</p>
                 <p className="text-2xl font-bold text-white mt-2">
-                  {contentStats.uploadedThisMonth}
+                  {mediaStats.newMediaThisMonthCount}
                 </p>
                 <p className="text-gray-400 text-sm mt-2">Content pieces uploaded</p>
               </div>
@@ -186,7 +199,7 @@ const Home = () => {
         </div>
         <div className="bg-[#1A1A1A] rounded-xl border border-gold-900/20">
           <div className="divide-y divide-gold-900/10">
-            {recentUploads.map((upload, index) => (
+            {recentMediaUploads.map((upload, index) => (
               <motion.div
                 key={index}
                 initial={{ opacity: 0, y: 20 }}
@@ -197,20 +210,20 @@ const Home = () => {
                   <div>
                     <h3 className="text-white font-medium">{upload.title}</h3>
                     <div className="flex items-center gap-2 mt-1">
-                      <span className="text-sm text-gray-400">{upload.type}</span>
+                      <span className="text-sm text-gray-400">{upload.genre.title}</span>
                       <span className="text-gray-600">•</span>
-                      <span className="text-sm text-gray-400">{upload.uploadDate}</span>
+                      <span className="text-sm text-gray-400">{upload.createdAt}</span>
                       <span className="text-gray-600">•</span>
-                      <span className="text-sm text-gray-400">{upload.plays} plays</span>
+                      <span className="text-sm text-gray-400">{upload.plays?.length} plays</span>
                     </div>
                   </div>
                   <span
                     className={`px-2 py-1 rounded-full text-xs ${
-                      upload.status === "Live"
+                      upload.adminStatus === "Live"
                         ? "bg-green-500/10 text-green-500"
                         : "bg-yellow-500/10 text-yellow-500"
                     }`}>
-                    {upload.status}
+                    {upload.adminStatus}
                   </span>
                 </div>
               </motion.div>
