@@ -1,3 +1,5 @@
+import LocalStorage from "@/lib/storage";
+import { STORAGE_KEY } from "@/lib/storage";
 import REQUEST, { REQUEST_TYPE } from ".";
 
 const AUDIO_ROUTES = {
@@ -15,7 +17,12 @@ const AUDIO_ROUTES = {
   GET_MEDIA_STATUSES: "/media/media-statuses",
   GET_MEDIA_BY_STATUS: "/media/media-by-admin-status",
   GET_MEDIA_STATS: "/media/media-stats",
+  CHANGE_MEDIA_STATUS: "/media/media-status",
 };
+
+/**
+ * interfaces
+ */
 
 interface IResponse {
   success: boolean;
@@ -90,6 +97,10 @@ export interface IMediaStats extends IResponse {
   };
 }
 
+/**
+ * End interfaces
+ */
+
 const GET_MEDIA_STATUSES = async (): Promise<IMediaStatuses> => {
   const response = await REQUEST(REQUEST_TYPE.GET, AUDIO_ROUTES.GET_MEDIA_STATUSES);
   return response;
@@ -100,9 +111,13 @@ const GET_MEDIA_BY_STATUS = async (
   page: number,
   limit: number
 ): Promise<IMediaByStatus> => {
+  const storage = new LocalStorage();
+  const token = storage.read(STORAGE_KEY.ADMINTOKEN) || "";
   const response = await REQUEST(
     REQUEST_TYPE.GET,
-    `${AUDIO_ROUTES.GET_MEDIA_BY_STATUS}?page=${page}&limit=${limit}&status=${status}`
+    `${AUDIO_ROUTES.GET_MEDIA_BY_STATUS}?page=${page}&limit=${limit}&adminStatus=${status}`,
+    {},
+    token
   );
   return response;
 };
@@ -170,6 +185,21 @@ const GET_MEDIA_STATS = async (): Promise<IMediaStats> => {
   return response;
 };
 
+const CHANGE_MEDIA_STATUS = async ({ mediaId, status }: { mediaId: string; status: string }) => {
+  const storage = new LocalStorage();
+  const token = storage.read(STORAGE_KEY.ADMINTOKEN) || "";
+  const response = await REQUEST(
+    REQUEST_TYPE.PUT,
+    AUDIO_ROUTES.CHANGE_MEDIA_STATUS,
+    {
+      mediaId,
+      adminStatus: status,
+    },
+    token
+  );
+  return response;
+};
+
 export {
   UPLOAD_EPISODE,
   UPLOAD_AUDIO,
@@ -185,4 +215,5 @@ export {
   GET_MEDIA_STATUSES,
   GET_MEDIA_BY_STATUS,
   GET_MEDIA_STATS,
+  CHANGE_MEDIA_STATUS,
 };

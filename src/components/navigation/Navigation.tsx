@@ -1,71 +1,59 @@
-import { useLocation } from "react-router";
-import { MenuItem } from "./MenuItem";
-import { LayoutDashboard, Users, Music2, Podcast, Church } from "lucide-react";
-import { ReactNode } from "react";
-
-interface NavigationItem {
-  title: string;
-  icon: ReactNode;
-  path: string;
-  subItems?: {
-    title: string;
-    path: string;
-    icon: ReactNode;
-  }[];
-}
-
-const navigationItems: NavigationItem[] = [
-  {
-    title: "Dashboard",
-    icon: <LayoutDashboard size={20} color="white" />,
-    path: "/admin",
-  },
-  {
-    title: "Users",
-    icon: <Users size={20} color="white" />,
-    path: "/admin/users",
-  },
-  {
-    title: "Media",
-    icon: <Music2 size={20} color="white" />,
-    path: "/admin/",
-    subItems: [
-      {
-        title: "Songs",
-        path: "/admin/songs",
-        icon: <Music2 size={18} color="white" />,
-      },
-      {
-        title: "Podcasts",
-        path: "/admin/podcasts",
-        icon: <Podcast size={18} color="white" />,
-      },
-      {
-        title: "Sermons",
-        path: "/admin/sermons",
-        icon: <Church size={18} color="white" />,
-      },
-    ],
-  },
-];
+import { Link, useLocation } from "react-router";
+import { Home, Users, Music2, Settings, ChevronRight } from "lucide-react";
+import { useState } from "react";
 
 export const Navigation = () => {
   const location = useLocation();
+  const [isExpanded] = useState(true);
 
   const isActive = (path: string) => location.pathname === path;
-  const isSubMenuActive = (item: NavigationItem) =>
-    item.subItems?.some((subItem) => location.pathname === subItem.path);
+
+  const adminRoutes = [
+    {
+      path: "/admin",
+      name: "Dashboard",
+      icon: <Home className="w-5 h-5" />,
+    },
+    {
+      path: "/admin/users",
+      name: "Users",
+      icon: <Users className="w-5 h-5" />,
+    },
+    {
+      path: "/admin/songs",
+      name: "Media",
+      icon: <Music2 className="w-5 h-5" />,
+    },
+    {
+      path: "/admin/settings",
+      name: "Settings",
+      icon: <Settings className="w-5 h-5" />,
+    },
+  ];
 
   return (
-    <nav className="p-4 space-y-2">
-      {navigationItems.map((item) => (
-        <MenuItem
-          key={item.title}
-          {...item}
-          isActive={isActive(item.path)}
-          isSubMenuActive={isSubMenuActive(item)}
-        />
-      ))}
+    <nav className="flex-1 overflow-y-auto">
+      <ul className="space-y-1 p-4">
+        {adminRoutes.map((route) => (
+          <li key={route.path}>
+            <Link
+              to={route.path}
+              className={`flex items-center gap-3 p-3 rounded-lg transition-colors ${
+                isActive(route.path)
+                  ? "bg-gold-900/10 text-gold-900"
+                  : "text-gray-400 hover:bg-gold-900/5 hover:text-gold-900"
+              }`}>
+              <div className="flex items-center justify-center w-6 h-6">{route.icon}</div>
+              {isExpanded && (
+                <>
+                  <span className="flex-1">{route.name}</span>
+                  <ChevronRight className="w-4 h-4" />
+                </>
+              )}
+            </Link>
+          </li>
+        ))}
+      </ul>
     </nav>
   );
 };

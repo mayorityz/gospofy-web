@@ -12,47 +12,41 @@ interface IResponse {
   message: string;
 }
 
-interface IUserData {
-  _id: string;
-  name: string;
-  email: string;
-  isVerified: boolean;
-  createdAt: string;
-  accountStatus: "active" | "suspended";
-  isPremiumUser: boolean;
-}
-
-interface IUserResponse {
-  data: IUserData[];
-  totalCount: number;
-  currentPage: string;
-  totalPages: number;
+export interface IUserStats extends IResponse {
+  data: {
+    totalUsers: {
+      count: number;
+      monthlyGrowth: number;
+    };
+    verifiedUsers: {
+      count: number;
+      percentage: number;
+    };
+    premiumUsers: {
+      count: number;
+      percentage: number;
+    };
+    newUsersThisMonth: {
+      count: number;
+    };
+  };
 }
 
 export interface IUser extends IResponse {
-  data: IUserResponse;
-}
-
-interface IUserStatsData {
-  totalUsers: {
-    count: number;
-    monthlyGrowth: number;
+  data: {
+    data: {
+      _id: string;
+      name: string;
+      email: string;
+      isVerified: boolean;
+      createdAt: string;
+      accountStatus: "active" | "suspended";
+      isPremiumUser: boolean;
+    }[];
+    totalCount: number;
+    currentPage: string;
+    totalPages: number;
   };
-  verifiedUsers: {
-    count: number;
-    percentage: number;
-  };
-  premiumUsers: {
-    count: number;
-    percentage: number;
-  };
-  newUsersThisMonth: {
-    count: number;
-  };
-}
-
-export interface IUserStats extends IResponse {
-  data: IUserStatsData;
 }
 
 // get all users
@@ -75,5 +69,11 @@ const GET_USER_STATS = async (): Promise<IUserStats> => {
   const response = await REQUEST(REQUEST_TYPE.GET, USERS_ROUTES.GET_USER_STATS, {}, token);
   return response;
 };
+
+// get user by id
+
+// update user
+
+// delete user
 
 export { GET_USER_STATS, GET_USERS };

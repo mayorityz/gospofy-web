@@ -1,6 +1,9 @@
 import { Outlet } from "react-router";
 import UserSideBar from "@/components/navigation/UserSideBar";
 import { useState } from "react";
+import { useUserAuth } from "@/hooks/useUserAuth";
+import { LogOut } from "lucide-react";
+import { Button } from "@/components/ui/button";
 
 export const UserLayout = () => {
   const [currentSong] = useState<{
@@ -8,12 +11,22 @@ export const UserLayout = () => {
     artist: string;
     coverArt: string;
   } | null>(null);
+  const { logout } = useUserAuth();
 
   return (
     <div className="relative bg-black">
       <UserSideBar />
       {/* Main Content Area */}
       <main className="ml-[300px] p-6 h-screen pb-24">
+        <div className="flex justify-end mb-4">
+          <Button
+            variant="outline"
+            className="border-gold-900/20 text-gold-900 hover:bg-gold-900/10"
+            onClick={logout}>
+            <LogOut className="w-4 h-4 mr-2" />
+            Logout
+          </Button>
+        </div>
         <Outlet />
       </main>
 

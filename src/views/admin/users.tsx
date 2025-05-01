@@ -30,6 +30,8 @@ import {
 import { ChangeEvent } from "react";
 import { GET_USER_STATS, GET_USERS, IUserStats, IUser } from "@/server/users";
 import { toast } from "sonner";
+import { ViewProfileDialog } from "@/components/dialogs/ViewProfileDialog";
+import { SendMessageDialog } from "@/components/dialogs/SendMessageDialog";
 
 export const AdminUsers = () => {
   const [searchQuery, setSearchQuery] = useState("");
@@ -40,7 +42,10 @@ export const AdminUsers = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [limit, setLimit] = useState(10);
   const [totalUsers, setTotalUsers] = useState(0);
-  const [users, setUsers] = useState<IUser["data"]>([]);
+  const [users, setUsers] = useState<IUser["data"]["data"]>([]);
+  const [selectedUser, setSelectedUser] = useState<IUser["data"]["data"][0] | null>(null);
+  const [isViewProfileOpen, setIsViewProfileOpen] = useState(false);
+  const [isSendMessageOpen, setIsSendMessageOpen] = useState(false);
   const [userStats, setUserStats] = useState<IUserStats["data"]>({
     totalUsers: {
       count: 0,
@@ -86,8 +91,8 @@ export const AdminUsers = () => {
         setIsLoadingUsers(true);
         const response = await GET_USERS(currentPage, limit);
         if (response.success) {
-          setUsers(response.data);
-          setTotalUsers(response.data.length);
+          setUsers(response.data.data);
+          setTotalUsers(response.data.totalCount);
         } else {
           toast.error(response.message || "Failed to fetch users");
         }
@@ -125,6 +130,24 @@ export const AdminUsers = () => {
   });
 
   const totalPages = Math.ceil(totalUsers / limit);
+
+  const handleSuspendUser = async (userId: string) => {
+    try {
+      console.log(userId);
+      // TODO: Implement suspend user logic using userId
+      // This will be used when the actual API endpoint is implemented
+      await new Promise((resolve) => setTimeout(resolve, 1000)); // Simulated API call
+      toast.success("User suspended successfully");
+      // Refresh users list
+      const response = await GET_USERS(currentPage, limit);
+      if (response.success) {
+        setUsers(response.data.data);
+      }
+    } catch (err) {
+      console.error("Error suspending user:", err);
+      toast.error("Failed to suspend user");
+    }
+  };
 
   return (
     <div className="flex flex-col h-screen p-8">
@@ -247,7 +270,7 @@ export const AdminUsers = () => {
         </div>
 
         {/* User Insights */}
-        <div className="bg-[#1A1A1A] p-6 rounded-xl border border-gold-900/20">
+        {/* <div className="bg-[#1A1A1A] p-6 rounded-xl border border-gold-900/20">
           <h2 className="text-xl font-semibold text-white mb-4">User Insights</h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             <div className="space-y-2">
@@ -272,7 +295,7 @@ export const AdminUsers = () => {
               </p>
             </div>
           </div>
-        </div>
+        </div> */}
 
         {/* Action Bar */}
         <div className="flex flex-col md:flex-row gap-4 justify-between items-start md:items-center">
@@ -287,10 +310,6 @@ export const AdminUsers = () => {
               <Download className="mr-2 h-4 w-4" />
               Export
             </Button>
-            <Button className="bg-gold-900 hover:bg-gold-900/90">
-              <UserPlus className="mr-2 h-4 w-4" />
-              Add New User
-            </Button>
           </div>
         </div>
 
@@ -299,16 +318,16 @@ export const AdminUsers = () => {
           <div className="relative flex-1">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500 h-4 w-4" />
             <Input
-              placeholder="Search by name, email, or location..."
+              placeholder="Search by name or email"
               value={searchQuery}
               onChange={handleSearch}
-              className="pl-10 bg-[#1A1A1A] border-gold-900/20 text-white"
+              className="pl-10 bg-[#1A1A1A] border-gold-900/20 text-white md:w-96 w-full"
             />
           </div>
           <div className="flex gap-3">
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="outline" className="border-gold-900/20">
+                <Button variant="outline" className="border-gold-900/20 text-gold-900">
                   <Filter className="mr-2 h-4 w-4" />
                   Status: {statusFilter}
                 </Button>
@@ -327,26 +346,7 @@ export const AdminUsers = () => {
 
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="outline" className="border-gold-900/20">
-                  <ChevronDown className="mr-2 h-4 w-4" />
-                  Role: {roleFilter}
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent>
-                <DropdownMenuLabel>Filter by Role</DropdownMenuLabel>
-                <DropdownMenuItem onClick={() => setRoleFilter("All")}>All Roles</DropdownMenuItem>
-                <DropdownMenuItem onClick={() => setRoleFilter("User")}>
-                  Regular Users
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => setRoleFilter("Premium")}>
-                  Premium Users
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="outline" className="border-gold-900/20">
+                <Button variant="outline" className="border-gold-900/20 text-gold-900">
                   <ChevronDown className="mr-2 h-4 w-4" />
                   Show: {limit}
                 </Button>
@@ -381,8 +381,6 @@ export const AdminUsers = () => {
                 <TableHead className="text-gold-900">Email</TableHead>
                 <TableHead className="text-gold-900">Status</TableHead>
                 <TableHead className="text-gold-900">Subscription</TableHead>
-                <TableHead className="text-gold-900">Location</TableHead>
-                <TableHead className="text-gold-900">Last Active</TableHead>
                 <TableHead className="text-gold-900">Joined Date</TableHead>
                 <TableHead className="text-gold-900 text-right">Actions</TableHead>
               </TableRow>
@@ -390,7 +388,7 @@ export const AdminUsers = () => {
             <TableBody>
               {isLoadingUsers ? (
                 <TableRow>
-                  <TableCell colSpan={8} className="text-center py-8">
+                  <TableCell colSpan={6} className="text-center py-8">
                     <div className="flex justify-center">
                       <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gold-900"></div>
                     </div>
@@ -399,7 +397,7 @@ export const AdminUsers = () => {
               ) : filteredUsers.length > 0 ? (
                 filteredUsers.map((user) => (
                   <TableRow key={user._id} className="border-gold-900/20">
-                    <TableCell className="font-medium text-white">{user.name}</TableCell>
+                    <TableCell className="font-medium text-white capitalize">{user.name}</TableCell>
                     <TableCell className="text-gray-400">{user.email}</TableCell>
                     <TableCell>
                       <span
@@ -408,7 +406,7 @@ export const AdminUsers = () => {
                             ? "bg-green-500/10 text-green-500"
                             : "bg-red-500/10 text-red-500"
                         }`}>
-                        {user.accountStatus === "active" ? "Active" : "Inactive"}
+                        {user.accountStatus === "active" ? "Active" : "Suspended"}
                       </span>
                     </TableCell>
                     <TableCell>
@@ -421,8 +419,9 @@ export const AdminUsers = () => {
                         {user.isPremiumUser ? "Premium" : "Free"}
                       </span>
                     </TableCell>
-                    <TableCell className="text-gray-400">{user.createdAt}</TableCell>
-                    <TableCell className="text-gray-400">{user.createdAt}</TableCell>
+                    <TableCell className="text-gray-400">
+                      {new Date(user.createdAt).toLocaleDateString()}
+                    </TableCell>
                     <TableCell className="text-right">
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild>
@@ -431,11 +430,27 @@ export const AdminUsers = () => {
                           </Button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
-                          <DropdownMenuItem>View Profile</DropdownMenuItem>
-                          <DropdownMenuItem>Edit User</DropdownMenuItem>
-                          <DropdownMenuItem>Send Message</DropdownMenuItem>
-                          <DropdownMenuItem>View Activity</DropdownMenuItem>
-                          <DropdownMenuItem className="text-red-500">Suspend User</DropdownMenuItem>
+                          <DropdownMenuItem
+                            onClick={() => {
+                              setSelectedUser(user);
+                              setIsViewProfileOpen(true);
+                            }}>
+                            View Profile
+                          </DropdownMenuItem>
+                          <DropdownMenuItem
+                            onClick={() => {
+                              setSelectedUser(user);
+                              setIsSendMessageOpen(true);
+                            }}>
+                            Send Message
+                          </DropdownMenuItem>
+                          {user.accountStatus === "active" && (
+                            <DropdownMenuItem
+                              className="text-red-500"
+                              onClick={() => handleSuspendUser(user._id)}>
+                              Suspend User
+                            </DropdownMenuItem>
+                          )}
                         </DropdownMenuContent>
                       </DropdownMenu>
                     </TableCell>
@@ -443,7 +458,7 @@ export const AdminUsers = () => {
                 ))
               ) : (
                 <TableRow>
-                  <TableCell colSpan={8} className="text-center py-8 text-gray-400">
+                  <TableCell colSpan={6} className="text-center py-8 text-gray-400">
                     No users found matching your search criteria.
                     <Button
                       variant="link"
@@ -499,6 +514,28 @@ export const AdminUsers = () => {
           </div>
         </div>
       </div>
+
+      {/* Dialogs */}
+      {selectedUser && (
+        <>
+          <ViewProfileDialog
+            user={selectedUser}
+            isOpen={isViewProfileOpen}
+            onClose={() => {
+              setIsViewProfileOpen(false);
+              setSelectedUser(null);
+            }}
+          />
+          <SendMessageDialog
+            user={selectedUser}
+            isOpen={isSendMessageOpen}
+            onClose={() => {
+              setIsSendMessageOpen(false);
+              setSelectedUser(null);
+            }}
+          />
+        </>
+      )}
     </div>
   );
 };
