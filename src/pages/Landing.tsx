@@ -1,7 +1,6 @@
 import Hero from "@/components/landing/Hero";
 import Features from "@/components/landing/Features";
 import CallToAction from "@/components/landing/CallToAction";
-import Footer from "@/components/landing/Footer";
 import AppShowcase from "@/components/app/AppShowcase";
 
 export const Landing = () => {
@@ -18,7 +17,6 @@ export const Landing = () => {
         />
       </div>
       <CallToAction />
-      <Footer />
     </div>
   );
 };
