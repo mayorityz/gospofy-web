@@ -45,21 +45,21 @@ const navigationItems: NavigationItem[] = [
 ];
 
 const libraryItems: NavigationItem[] = [
-  {
-    title: "Liked",
-    icon: <Heart className="w-5 h-5" />,
-    path: "/user/liked",
-  },
-  {
-    title: "Recently Played",
-    icon: <History className="w-5 h-5" />,
-    path: "/user/history",
-  },
-  {
-    title: "Playlists",
-    icon: <PlayCircle className="w-5 h-5" />,
-    path: "/user/playlists",
-  },
+  // {
+  //   title: "Liked",
+  //   icon: <Heart className="w-5 h-5" />,
+  //   path: "/user/liked",
+  // },
+  // {
+  //   title: "Recently Played",
+  //   icon: <History className="w-5 h-5" />,
+  //   path: "/user/history",
+  // },
+  // {
+  //   title: "Playlists",
+  //   icon: <PlayCircle className="w-5 h-5" />,
+  //   path: "/user/playlists",
+  // },
 ];
 
 const UserSideBar = () => {

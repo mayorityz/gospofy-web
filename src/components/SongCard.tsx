@@ -36,13 +36,13 @@ export function SongCard({ song, onActionClick }: SongCardProps) {
             <p className="text-sm text-gray-400 truncate">{song?.genre?.title || "N/A"}</p>
           </div>
           <div className="flex items-center gap-2">
-            {song.status === "approved" && <CheckCircle2 className="w-4 h-4 text-green-500" />}
-            {song.status === "pending" && <Clock className="w-4 h-4 text-yellow-500" />}
+            {song.adminStatus === "active" && <CheckCircle2 className="w-4 h-4 text-green-500" />}
+            {song.adminStatus !== "active" && <Clock className="w-4 h-4 text-yellow-500" />}
             <span
               className={`text-xs capitalize ${
-                song.status === "approved" ? "text-green-500" : "text-yellow-500"
+                song.adminStatus === "active" ? "text-green-500" : "text-yellow-500"
               }`}>
-              {song.status}
+              {song.adminStatus}
             </span>
           </div>
         </div>

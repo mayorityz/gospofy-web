@@ -36,13 +36,13 @@ export function SermonCard({ sermon, onActionClick }: SermonCardProps) {
             <p className="text-sm text-gray-400 truncate">{sermon.preacher}</p>
           </div>
           <div className="flex items-center gap-2">
-            {sermon.status === "approved" && <CheckCircle2 className="w-4 h-4 text-green-500" />}
-            {sermon.status === "pending" && <Clock className="w-4 h-4 text-yellow-500" />}
+            {sermon.adminStatus === "active" && <CheckCircle2 className="w-4 h-4 text-green-500" />}
+            {sermon.adminStatus !== "active" && <Clock className="w-4 h-4 text-yellow-500" />}
             <span
               className={`text-xs capitalize ${
-                sermon.status === "approved" ? "text-green-500" : "text-yellow-500"
+                sermon.adminStatus === "active" ? "text-green-500" : "text-yellow-500"
               }`}>
-              {sermon.status}
+              {sermon.adminStatus === "active" ? "Approved" : sermon.adminStatus}
             </span>
           </div>
         </div>

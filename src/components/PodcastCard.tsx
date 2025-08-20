@@ -36,13 +36,15 @@ export function PodcastCard({ podcast, onActionClick }: PodcastCardProps) {
             <p className="text-sm text-gray-400 truncate">{podcast?.genre?.title || "N/A"}</p>
           </div>
           <div className="flex items-center gap-2">
-            {podcast.status === "approved" && <CheckCircle2 className="w-4 h-4 text-green-500" />}
-            {podcast.status === "pending" && <Clock className="w-4 h-4 text-yellow-500" />}
+            {podcast.adminStatus === "active" && (
+              <CheckCircle2 className="w-4 h-4 text-green-500" />
+            )}
+            {podcast.adminStatus !== "active" && <Clock className="w-4 h-4 text-yellow-500" />}
             <span
               className={`text-xs capitalize ${
-                podcast.status === "approved" ? "text-green-500" : "text-yellow-500"
+                podcast.adminStatus === "active" ? "text-green-500" : "text-yellow-500"
               }`}>
-              {podcast.status}
+              {podcast.adminStatus}
             </span>
           </div>
         </div>
