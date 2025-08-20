@@ -21,11 +21,13 @@ export interface Song extends BaseMedia {
   likes: number;
   adminFeedback?: string;
   rejectionReason?: string;
+  adminStatus: string;
 }
 
 export interface Podcast extends BaseMedia {
   episodes: number;
   coverArt?: string;
+  adminStatus: string;
 }
 
 export interface Sermon extends BaseMedia {
@@ -33,6 +35,7 @@ export interface Sermon extends BaseMedia {
   theme: string;
   duration: string;
   episodeCount?: number;
+  adminStatus: string;
 }
 
 export type Media = Song | Podcast | Sermon;

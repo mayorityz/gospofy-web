@@ -1,18 +1,7 @@
 import { useState } from "react";
 import { useLocation, Link } from "react-router";
 import { Button } from "@/components/ui/button";
-import {
-  Home,
-  Music2,
-  Radio,
-  Church,
-  Heart,
-  History,
-  PlayCircle,
-  Plus,
-  Settings,
-  LogOut,
-} from "lucide-react";
+import { Home, Music2, Radio, Church, Plus, Settings, LogOut } from "lucide-react";
 import { motion } from "framer-motion";
 
 interface NavigationItem {
