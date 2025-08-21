@@ -14,6 +14,7 @@ import AdminLogin from "./views/admin/auth/AdminLogin.tsx";
 import PrivacyPolicy from "./pages/PrivacyPolicy.tsx";
 import AppLayout from "./layouts/AppLayout.tsx";
 import Terms from "./pages/Terms.tsx";
+import DeleteAccount from "./pages/DeleteAccount.tsx";
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
@@ -23,6 +24,7 @@ createRoot(document.getElementById("root")!).render(
           <Route path="" element={<Landing />} />
           <Route path="privacy-policy" element={<PrivacyPolicy />} />
           <Route path="terms" element={<Terms />} />
+          <Route path="delete-account" element={<DeleteAccount />} />
         </Route>
         <Route path="/login" element={<UserLogin />} />
         <Route path="/admin-login" element={<AdminLogin />} />
